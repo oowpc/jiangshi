@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 321efef5db9fadd4cb4314845803e92b, type: 3}
+  m_Name: ZombieData
+  m_EditorClassIdentifier: 
+  displayName: "\u50F5\u5C38"
+  prefab: {fileID: 8111226286768660721, guid: 73dbf5e41870e9d45a3c22930aff18d1, type: 3}
+  maxHealth: 35
+  moveSpeed: 2
+  attackDamage: 6
+  attackRange: 1.2
+  attackInterval: 1.1
+  trainingCost:
+  - type: 0
+    amount: 25
+  trainingTime: 5
