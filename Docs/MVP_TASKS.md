@@ -2,8 +2,8 @@
 
 ## Phase 1: Grid And Building
 
-- Generate the prototype scene from the Unity menu.
-- Confirm camera movement and mouse wheel zoom.
+- [x] Generate the prototype scene from the Unity menu.
+- [x] Confirm camera movement and mouse wheel zoom.
 - [x] Add grid debug drawing.
 - [x] Add building preview ghost.
 - [x] Add red/green placement feedback.
@@ -14,7 +14,7 @@
 
 - [x] Spawn zombies from map edge spawn points.
 - [x] Make towers acquire enemy targets by faction.
-- Add projectile or instant-hit feedback.
+- [x] Add projectile or instant-hit feedback.
 - [x] Add zombie contact attack against buildings.
 - [x] Remove or pool dead units.
 
@@ -27,7 +27,7 @@
 
 ## Phase 4: Economy And UI
 
-- Add resource producers.
+- [x] Add resource producers.
 - [x] Add build menu buttons.
-- Add unit training from barracks.
+- [x] Add unit training from barracks.
 - [x] Add pause and restart flow.

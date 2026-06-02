@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 8724447158860213530}
   - component: {fileID: 5248434172022269633}
   - component: {fileID: 1164961385344108183}
+  - component: {fileID: 5584052050959297894}
+  - component: {fileID: 8355613181685683167}
   - component: {fileID: 6281557165002291327}
   - component: {fileID: 2780991654136734806}
   - component: {fileID: 7434879062769726727}
@@ -33,7 +35,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.45, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -124,6 +126,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+--- !u!114 &5584052050959297894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6003437085276103731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  duration: 0.1
+--- !u!114 &8355613181685683167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6003437085276103731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.4
 --- !u!114 &6281557165002291327
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,8 +203,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 644359a7bcd9f3642abb58831d3b4920, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resourceType: 0
-  amountPerTick: 5
+  resourceType: 3
+  amountPerTick: 10
   interval: 5
   scaleWithNearbyCells: 0
   scanContent: 0

@@ -41,7 +41,14 @@ namespace Jiangshi.Combat
 
             if (CurrentHealth == 0)
             {
+                var death = GetComponent<DeathEffect>();
+                if (death != null) death.Play();
                 Died?.Invoke(this);
+            }
+            else
+            {
+                var flash = GetComponent<HitFlash>();
+                if (flash != null) flash.Flash();
             }
         }
     }

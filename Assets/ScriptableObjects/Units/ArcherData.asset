@@ -24,4 +24,6 @@ MonoBehaviour:
     amount: 50
   - type: 1
     amount: 20
+  - type: 4
+    amount: 2
   trainingTime: 10

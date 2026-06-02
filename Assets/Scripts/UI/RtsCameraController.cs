@@ -5,11 +5,11 @@ namespace Jiangshi.UI
     public sealed class RtsCameraController : MonoBehaviour
     {
         [SerializeField] private float moveSpeed = 22f;
-        [SerializeField] private float zoomSpeed = 6f;
+        [SerializeField] private float zoomSpeed = 4f;
         [SerializeField] private float minOrthographicSize = 8f;
-        [SerializeField] private float maxOrthographicSize = 36f;
-        [SerializeField] private Vector2 xBounds = new Vector2(-8f, 72f);
-        [SerializeField] private Vector2 zBounds = new Vector2(-8f, 72f);
+        [SerializeField] private float maxOrthographicSize = 28f;
+        [SerializeField] private Vector2 xBounds = new Vector2(-8f, 136f);
+        [SerializeField] private Vector2 zBounds = new Vector2(-32f, 136f);
 
         private Camera controlledCamera;
 
@@ -62,4 +62,3 @@ namespace Jiangshi.UI
         }
     }
 }
-

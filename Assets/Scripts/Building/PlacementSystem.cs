@@ -29,6 +29,7 @@ namespace Jiangshi.Building
         private Material invalidPreviewMaterial;
         private bool previewMaterialInitialized;
         private bool lastPreviewCanPlace;
+        private bool placementRotated;
 
         public BuildingData SelectedBuilding => selectedBuilding;
         public BuildingData[] BuildingOptions => buildingOptions;
@@ -54,6 +55,7 @@ namespace Jiangshi.Building
         private void Update()
         {
             HandleSelectionInput();
+            HandleRotationInput();
             UpdatePreview();
 
             if (selectedBuilding == null || worldCamera == null)
@@ -81,6 +83,7 @@ namespace Jiangshi.Building
             }
 
             selectedBuilding = buildingData;
+            placementRotated = false;
             DestroyPreview();
             SelectedBuildingChanged?.Invoke(selectedBuilding);
         }
@@ -127,7 +130,8 @@ namespace Jiangshi.Building
                 return false;
             }
 
-            if (!CanPlace(buildingData, gridPosition))
+            var occupiedSize = GetPlacementSize(buildingData);
+            if (!CanPlace(buildingData, gridPosition, occupiedSize))
             {
                 return false;
             }
@@ -137,29 +141,47 @@ namespace Jiangshi.Building
                 return false;
             }
 
-            var position = gridManager.GridToWorld(gridPosition, buildingData.size);
-            var instance = Instantiate(buildingData.prefab, position, Quaternion.identity);
+            var position = gridManager.GridToWorld(gridPosition, occupiedSize);
+            var instance = Instantiate(buildingData.prefab, position, GetPlacementRotation(buildingData));
             SnapObjectBottomToY(instance, position.y);
 
             var building = instance.GetComponent<Building>();
             if (building != null)
             {
-                building.Initialize(buildingData, gridPosition);
+                building.Initialize(buildingData, gridPosition, occupiedSize);
                 buildingManager?.Register(building);
             }
 
-            gridManager.SetOccupied(gridPosition, buildingData.size, true, !buildingData.blocksMovement);
+            gridManager.SetOccupied(gridPosition, occupiedSize, true, !buildingData.blocksMovement);
             return true;
         }
 
         public bool CanPlace(BuildingData buildingData, GridPosition gridPosition)
         {
+            return CanPlace(buildingData, gridPosition, GetPlacementSize(buildingData));
+        }
+
+        private bool CanPlace(BuildingData buildingData, GridPosition gridPosition, Vector2Int occupiedSize)
+        {
             return buildingData != null
                 && buildingData.prefab != null
                 && gridManager != null
                 && resourceManager != null
-                && gridManager.CanOccupy(gridPosition, buildingData.size)
-                && resourceManager.CanAfford(buildingData.buildCost);
+                && gridManager.CanOccupy(gridPosition, occupiedSize)
+                && resourceManager.CanAfford(buildingData.buildCost)
+                && CanAffordPower(buildingData)
+                && CanAffordPopulation(buildingData);
+        }
+
+        private bool CanAffordPower(BuildingData buildingData)
+        {
+            return buildingData.powerCost <= 0 || resourceManager.Get(ResourceType.Power) >= buildingData.powerCost;
+        }
+
+        private bool CanAffordPopulation(BuildingData buildingData)
+        {
+            return buildingData.populationCost <= 0
+                || resourceManager.Get(ResourceType.Population) >= buildingData.populationCost;
         }
 
         private void HandleSelectionInput()
@@ -182,6 +204,20 @@ namespace Jiangshi.Building
             }
         }
 
+        private void HandleRotationInput()
+        {
+            if (selectedBuilding == null || !CanRotate(selectedBuilding))
+            {
+                placementRotated = false;
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+                placementRotated = !placementRotated;
+            }
+        }
+
         private void UpdatePreview()
         {
             if (selectedBuilding == null || selectedBuilding.prefab == null || gridManager == null || worldCamera == null)
@@ -198,11 +234,35 @@ namespace Jiangshi.Building
                 return;
             }
 
-            var position = gridManager.GridToWorld(gridPosition, selectedBuilding.size);
-            previewInstance.transform.SetPositionAndRotation(position, Quaternion.identity);
+            var occupiedSize = GetPlacementSize(selectedBuilding);
+            var position = gridManager.GridToWorld(gridPosition, occupiedSize);
+            previewInstance.transform.SetPositionAndRotation(position, GetPlacementRotation(selectedBuilding));
             SnapObjectBottomToY(previewInstance, position.y);
             SetPreviewActive(true);
-            ApplyPreviewMaterial(CanPlace(selectedBuilding, gridPosition));
+            ApplyPreviewMaterial(CanPlace(selectedBuilding, gridPosition, occupiedSize));
+        }
+
+        private Vector2Int GetPlacementSize(BuildingData buildingData)
+        {
+            if (buildingData == null)
+            {
+                return Vector2Int.one;
+            }
+
+            var size = buildingData.size;
+            return placementRotated && CanRotate(buildingData) ? new Vector2Int(size.y, size.x) : size;
+        }
+
+        private Quaternion GetPlacementRotation(BuildingData buildingData)
+        {
+            return placementRotated && CanRotate(buildingData) ? Quaternion.Euler(0f, 90f, 0f) : Quaternion.identity;
+        }
+
+        private static bool CanRotate(BuildingData buildingData)
+        {
+            return buildingData != null
+                && buildingData.canRotatePlacement
+                && buildingData.size.x != buildingData.size.y;
         }
 
         private void EnsurePreview()

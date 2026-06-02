@@ -20,7 +20,9 @@ namespace Jiangshi.Economy
         {
             resourceType = type;
             amountPerTick = amount;
-            interval = tickInterval;
+            interval = tickInterval > 0f ? tickInterval : 5f;
+            scaleWithNearbyCells = false;
+            scanContent = CellContent.None;
         }
 
         public void SetScaleWithCells(CellContent content, int radius)
@@ -65,7 +67,7 @@ namespace Jiangshi.Economy
                 }
             }
 
-            return count;
+            return count * Mathf.Max(1, amountPerTick);
         }
     }
 }

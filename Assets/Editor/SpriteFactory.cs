@@ -64,6 +64,7 @@ namespace Jiangshi.Editor
             var path = $"{SpriteRoot}/{name}.png";
             if (!System.IO.File.Exists(path)) return null;
 
+            AssetDatabase.ImportAsset(path);
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null) return null;
 
@@ -108,6 +109,61 @@ namespace Jiangshi.Editor
                 if (asset is Sprite s)
                     sprites.Add(s);
             }
+            sprites.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.Ordinal));
+            return sprites.ToArray();
+        }
+
+        public static Sprite[] SliceGridSpriteSheet(string name, int columns, int rows)
+        {
+            var path = $"{SpriteRoot}/{name}.png";
+            if (!System.IO.File.Exists(path)) return null;
+
+            AssetDatabase.ImportAsset(path);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null) return null;
+
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (tex == null || columns <= 0 || rows <= 0) return null;
+
+            var tileWidth = tex.width / columns;
+            var tileHeight = tex.height / rows;
+            if (tileWidth <= 0 || tileHeight <= 0) return null;
+
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Multiple;
+            importer.spritePixelsPerUnit = Mathf.Max(tileWidth, tileHeight);
+            importer.filterMode = FilterMode.Point;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.wrapMode = TextureWrapMode.Clamp;
+
+            var rects = new SpriteMetaData[columns * rows];
+            for (var i = 0; i < rects.Length; i++)
+            {
+                var col = i % columns;
+                var row = i / columns;
+                var yPos = tex.height - (row + 1) * tileHeight;
+                rects[i] = new SpriteMetaData
+                {
+                    name = $"{name}_{i:00}",
+                    rect = new Rect(col * tileWidth, yPos, tileWidth, tileHeight),
+                    alignment = (int)SpriteAlignment.Center,
+                    pivot = new Vector2(0.5f, 0.5f)
+                };
+            }
+
+#pragma warning disable 618
+            importer.spritesheet = rects;
+#pragma warning restore 618
+            importer.SaveAndReimport();
+
+            var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+            var sprites = new System.Collections.Generic.List<Sprite>();
+            foreach (var asset in assets)
+            {
+                if (asset is Sprite s)
+                    sprites.Add(s);
+            }
+
             sprites.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.Ordinal));
             return sprites.ToArray();
         }

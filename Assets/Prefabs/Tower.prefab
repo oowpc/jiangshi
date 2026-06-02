@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 850843057460419004}
   - component: {fileID: 520477612726582876}
   - component: {fileID: 3675405395930419248}
+  - component: {fileID: 3809544261529916416}
+  - component: {fileID: 8508518116100191951}
   - component: {fileID: 1529557057937624799}
   - component: {fileID: 8134137441477865940}
   - component: {fileID: 1854331150159643296}
@@ -33,7 +35,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1.8, z: 1}
+  m_LocalScale: {x: 1, y: 2.35, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -124,6 +126,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+--- !u!114 &3809544261529916416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309335586691103526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  duration: 0.1
+--- !u!114 &8508518116100191951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309335586691103526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.4
 --- !u!114 &1529557057937624799
 MonoBehaviour:
   m_ObjectHideFlags: 0

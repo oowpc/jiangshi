@@ -41,8 +41,7 @@ namespace Jiangshi.Pathfinding
                     var neighbor = new GridPosition(current.X + dir.X, current.Y + dir.Y);
                     var cell = grid.GetCell(neighbor);
 
-                    // null = outside map = walkable, allow passage
-                    if (cell != null && !cell.IsWalkable) continue;
+                    if (cell == null || !cell.IsWalkable) continue;
 
                     var neighborKey = Key(neighbor);
                     var tentativeG = gScore[currentKey] + 1f;

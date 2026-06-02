@@ -5,6 +5,7 @@ using Jiangshi.Core;
 using Jiangshi.Economy;
 using Jiangshi.Waves;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Jiangshi.UI
@@ -42,8 +43,22 @@ namespace Jiangshi.UI
         [SerializeField] private bool enableDebugVictoryKey = true;
         [SerializeField] private KeyCode debugVictoryKey = KeyCode.F10;
 
+        private Button settingsButton;
+        private Button settingsCloseButton;
+        private Button settingsQuitButton;
+        private GameObject settingsPanel;
+        private bool settingsPausedGame;
+        private GameObject demolitionPanel;
+        private Text demolitionTitleText;
+        private Text demolitionRefundText;
+        private Button demolitionButton;
+        private Text demolitionButtonLabel;
+        private Jiangshi.Building.Building selectedDemolitionBuilding;
+
         private void Awake()
         {
+            EnsureCanvasVisible();
+
             if (gameManager == null)
             {
                 gameManager = GameManager.Instance;
@@ -52,6 +67,15 @@ namespace Jiangshi.UI
             if (commandBase == null)
             {
                 commandBase = FindCriticalBuildingHealth();
+            }
+        }
+
+        private void EnsureCanvasVisible()
+        {
+            var rectTransform = transform as RectTransform;
+            if (rectTransform != null && rectTransform.localScale == Vector3.zero)
+            {
+                rectTransform.localScale = Vector3.one;
             }
         }
 
@@ -97,6 +121,8 @@ namespace Jiangshi.UI
                 victoryRestartButton.onClick.AddListener(Restart);
             }
 
+            EnsureSettingsUi();
+            EnsureDemolitionUi();
             RegisterBuildButtons();
             RefreshAll();
         }
@@ -121,6 +147,8 @@ namespace Jiangshi.UI
             RefreshBaseHealth();
             RefreshSurvivalTime();
             RefreshWaveStatus();
+            HandleBuildingSelectionInput();
+            RefreshDemolitionUi();
         }
 
         private void OnDestroy()
@@ -161,6 +189,26 @@ namespace Jiangshi.UI
             {
                 victoryRestartButton.onClick.RemoveListener(Restart);
             }
+
+            if (settingsButton != null)
+            {
+                settingsButton.onClick.RemoveListener(ToggleSettings);
+            }
+
+            if (settingsCloseButton != null)
+            {
+                settingsCloseButton.onClick.RemoveListener(CloseSettings);
+            }
+
+            if (settingsQuitButton != null)
+            {
+                settingsQuitButton.onClick.RemoveListener(QuitGame);
+            }
+
+            if (demolitionButton != null)
+            {
+                demolitionButton.onClick.RemoveListener(DemolishSelectedBuilding);
+            }
         }
 
         private void Restart()
@@ -171,6 +219,126 @@ namespace Jiangshi.UI
         private void TogglePause()
         {
             gameManager?.TogglePause();
+        }
+
+        private void ToggleSettings()
+        {
+            if (settingsPanel == null)
+            {
+                return;
+            }
+
+            if (settingsPanel.activeSelf)
+            {
+                CloseSettings();
+            }
+            else
+            {
+                OpenSettings();
+            }
+        }
+
+        private void OpenSettings()
+        {
+            if (settingsPanel == null)
+            {
+                return;
+            }
+
+            settingsPausedGame = gameManager != null && gameManager.State == GameState.Playing;
+            if (settingsPausedGame)
+            {
+                gameManager.SetPaused(true);
+            }
+
+            settingsPanel.SetActive(true);
+        }
+
+        private void CloseSettings()
+        {
+            if (settingsPanel != null)
+            {
+                settingsPanel.SetActive(false);
+            }
+
+            if (settingsPausedGame && gameManager != null && gameManager.State == GameState.Paused)
+            {
+                gameManager.SetPaused(false);
+            }
+
+            settingsPausedGame = false;
+        }
+
+        private void QuitGame()
+        {
+            Time.timeScale = 1f;
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+
+        private void HandleBuildingSelectionInput()
+        {
+            if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape))
+            {
+                selectedDemolitionBuilding = null;
+                return;
+            }
+
+            if (!Input.GetMouseButtonDown(0))
+            {
+                return;
+            }
+
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
+            var camera = Camera.main;
+            if (camera == null)
+            {
+                return;
+            }
+
+            var ray = camera.ScreenPointToRay(Input.mousePosition);
+            if (!Physics.Raycast(ray, out var hit, 500f, -1, QueryTriggerInteraction.Ignore))
+            {
+                if (placementSystem == null || placementSystem.SelectedBuilding == null)
+                {
+                    selectedDemolitionBuilding = null;
+                }
+                return;
+            }
+
+            var building = hit.collider.GetComponentInParent<Jiangshi.Building.Building>();
+            if (building != null)
+            {
+                selectedDemolitionBuilding = building;
+                placementSystem?.SelectBuilding(null);
+                return;
+            }
+
+            if (placementSystem == null || placementSystem.SelectedBuilding == null)
+            {
+                selectedDemolitionBuilding = null;
+            }
+        }
+
+        private void DemolishSelectedBuilding()
+        {
+            if (selectedDemolitionBuilding == null || !selectedDemolitionBuilding.CanDemolish())
+            {
+                return;
+            }
+
+            var building = selectedDemolitionBuilding;
+            selectedDemolitionBuilding = null;
+            building.Demolish(resourceManager);
+            RefreshBuildButtons();
+            RefreshDemolitionUi();
         }
 
         private void OnResourceChanged(ResourceType resourceType, int value)
@@ -204,7 +372,7 @@ namespace Jiangshi.UI
             SetText(goldText, $"金币: {GetResource(ResourceType.Gold)}");
             SetText(woodText, $"木材: {GetResource(ResourceType.Wood)}");
             SetText(foodText, $"食物: {GetResource(ResourceType.Food)}");
-            SetText(powerText, $"电力: {GetResource(ResourceType.Power)}");
+            SetText(powerText, $"电力: {GetResource(ResourceType.Power)}  人口: {GetResource(ResourceType.Population)}");
         }
 
         private int GetResource(ResourceType resourceType)
@@ -342,12 +510,24 @@ namespace Jiangshi.UI
                     continue;
                 }
 
-                var canAfford = resourceManager == null || resourceManager.CanAfford(data.buildCost);
+                var canAfford = CanAffordBuildData(data);
                 var isSelected = placementSystem != null && placementSystem.SelectedBuilding == data;
                 button.interactable = canAfford;
                 SetButtonColor(button, !canAfford ? buildButtonDisabledColor : isSelected ? buildButtonSelectedColor : buildButtonNormalColor);
                 SetText(label, FormatBuildButtonLabel(i, data));
             }
+        }
+
+        private bool CanAffordBuildData(BuildingData data)
+        {
+            if (resourceManager == null)
+            {
+                return true;
+            }
+
+            return resourceManager.CanAfford(data.buildCost)
+                && (data.powerCost <= 0 || resourceManager.Get(ResourceType.Power) >= data.powerCost)
+                && (data.populationCost <= 0 || resourceManager.Get(ResourceType.Population) >= data.populationCost);
         }
 
         private string FormatBuildButtonLabel(int index, BuildingData data)
@@ -373,6 +553,11 @@ namespace Jiangshi.UI
                 if (data.powerCost > 0)
                 {
                     builder.Append($"  ⚡{data.powerCost}");
+                }
+
+                if (data.populationCost > 0)
+                {
+                    builder.Append($"  人{data.populationCost}");
                 }
             }
 
@@ -422,6 +607,164 @@ namespace Jiangshi.UI
             {
                 text.text = value;
             }
+        }
+
+        private void EnsureDemolitionUi()
+        {
+            if (demolitionPanel != null)
+            {
+                return;
+            }
+
+            demolitionPanel = CreateRuntimePanel(transform, "Demolition Panel", new Vector2(0.5f, 0f), new Vector2(0f, 86f), new Vector2(360f, 132f), new Color(0.035f, 0.045f, 0.052f, 0.92f));
+            demolitionTitleText = CreateRuntimeText(demolitionPanel.transform, "Demolition Title", "未选择建筑", 20, new Vector2(0f, 38f), new Vector2(320f, 30f), TextAnchor.MiddleCenter);
+            demolitionRefundText = CreateRuntimeText(demolitionPanel.transform, "Demolition Refund", "", 16, new Vector2(0f, 10f), new Vector2(320f, 28f), TextAnchor.MiddleCenter);
+            demolitionButton = CreateRuntimeButton(demolitionPanel.transform, "Demolition Button", "拆除", new Vector2(0.5f, 0.5f), new Vector2(0f, -38f), new Vector2(132f, 38f));
+            demolitionButtonLabel = demolitionButton.GetComponentInChildren<Text>();
+            demolitionButton.onClick.AddListener(DemolishSelectedBuilding);
+            demolitionPanel.SetActive(false);
+        }
+
+        private void RefreshDemolitionUi()
+        {
+            if (demolitionPanel == null)
+            {
+                return;
+            }
+
+            if (selectedDemolitionBuilding == null || selectedDemolitionBuilding.Data == null)
+            {
+                demolitionPanel.SetActive(false);
+                return;
+            }
+
+            demolitionPanel.SetActive(true);
+            var data = selectedDemolitionBuilding.Data;
+            var name = string.IsNullOrWhiteSpace(data.displayName) ? data.name : data.displayName;
+            SetText(demolitionTitleText, name);
+
+            if (!selectedDemolitionBuilding.CanDemolish())
+            {
+                SetText(demolitionRefundText, "核心建筑不能拆除");
+                SetText(demolitionButtonLabel, "不可拆除");
+                demolitionButton.interactable = false;
+                return;
+            }
+
+            SetText(demolitionRefundText, $"返还: {FormatRefund(data)}");
+            SetText(demolitionButtonLabel, "拆除");
+            demolitionButton.interactable = true;
+        }
+
+        private string FormatRefund(BuildingData data)
+        {
+            if (data == null || data.buildCost == null || data.buildCost.Length == 0)
+            {
+                return "无";
+            }
+
+            var builder = new StringBuilder();
+            foreach (var cost in data.buildCost)
+            {
+                var amount = Mathf.FloorToInt(cost.amount * 0.5f);
+                if (amount <= 0)
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.Append(' ');
+                }
+
+                builder.Append(FormatCost(new ResourceAmount { type = cost.type, amount = amount }));
+            }
+
+            return builder.Length > 0 ? builder.ToString() : "无";
+        }
+
+        private void EnsureSettingsUi()
+        {
+            if (settingsButton != null)
+            {
+                return;
+            }
+
+            var root = transform;
+            settingsButton = CreateRuntimeButton(root, "Settings Button", "设置", new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(104f, 38f));
+            settingsButton.onClick.AddListener(ToggleSettings);
+
+            settingsPanel = CreateRuntimePanel(root, "Settings Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(360f, 210f), new Color(0.035f, 0.045f, 0.052f, 0.94f));
+            CreateRuntimeText(settingsPanel.transform, "Settings Title", "设置", 30, new Vector2(0f, 62f), new Vector2(300f, 44f), TextAnchor.MiddleCenter);
+            CreateRuntimeText(settingsPanel.transform, "Settings Message", "游戏已暂停", 20, new Vector2(0f, 20f), new Vector2(300f, 32f), TextAnchor.MiddleCenter);
+
+            settingsCloseButton = CreateRuntimeButton(settingsPanel.transform, "Settings Close Button", "继续游戏", new Vector2(0.5f, 0.5f), new Vector2(-82f, -52f), new Vector2(132f, 44f));
+            settingsQuitButton = CreateRuntimeButton(settingsPanel.transform, "Settings Quit Button", "退出游戏", new Vector2(0.5f, 0.5f), new Vector2(82f, -52f), new Vector2(132f, 44f));
+            settingsCloseButton.onClick.AddListener(CloseSettings);
+            settingsQuitButton.onClick.AddListener(QuitGame);
+            settingsPanel.SetActive(false);
+        }
+
+        private static GameObject CreateRuntimePanel(Transform parent, string name, Vector2 anchor, Vector2 anchoredPosition, Vector2 size, Color color)
+        {
+            var panel = new GameObject(name);
+            panel.transform.SetParent(parent, false);
+            SetupRuntimeRect(panel, anchor, anchoredPosition, size);
+
+            var image = panel.AddComponent<Image>();
+            image.color = color;
+
+            var shadow = panel.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.38f);
+            shadow.effectDistance = new Vector2(0f, -5f);
+            return panel;
+        }
+
+        private static Button CreateRuntimeButton(Transform parent, string name, string label, Vector2 anchor, Vector2 anchoredPosition, Vector2 size)
+        {
+            var buttonObject = new GameObject(name);
+            buttonObject.transform.SetParent(parent, false);
+            SetupRuntimeRect(buttonObject, anchor, anchoredPosition, size);
+
+            var image = buttonObject.AddComponent<Image>();
+            image.color = new Color(0.13f, 0.2f, 0.24f, 0.96f);
+
+            var button = buttonObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            var colors = button.colors;
+            colors.normalColor = image.color;
+            colors.highlightedColor = new Color(0.18f, 0.31f, 0.36f, 1f);
+            colors.pressedColor = new Color(0.08f, 0.13f, 0.16f, 1f);
+            colors.selectedColor = colors.highlightedColor;
+            button.colors = colors;
+
+            CreateRuntimeText(buttonObject.transform, "Label", label, 18, Vector2.zero, size, TextAnchor.MiddleCenter);
+            return button;
+        }
+
+        private static Text CreateRuntimeText(Transform parent, string name, string value, int fontSize, Vector2 anchoredPosition, Vector2 size, TextAnchor alignment)
+        {
+            var textObject = new GameObject(name);
+            textObject.transform.SetParent(parent, false);
+            SetupRuntimeRect(textObject, new Vector2(0.5f, 0.5f), anchoredPosition, size);
+
+            var text = textObject.AddComponent<Text>();
+            text.text = value;
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = fontSize;
+            text.alignment = alignment;
+            text.color = new Color(0.94f, 0.96f, 0.93f, 1f);
+            return text;
+        }
+
+        private static void SetupRuntimeRect(GameObject obj, Vector2 anchor, Vector2 anchoredPosition, Vector2 size)
+        {
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = anchoredPosition;
+            rect.sizeDelta = size;
         }
     }
 }

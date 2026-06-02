@@ -15,6 +15,7 @@ MonoBehaviour:
   displayName: "\u519C\u573A"
   prefab: {fileID: 4445772604691815645, guid: 9b6af56e4dec7ea40ae07fab7ebe4a1c, type: 3}
   size: {x: 1, y: 1}
+  canRotatePlacement: 0
   maxHealth: 60
   blocksMovement: 1
   triggersDefeatOnDestroyed: 0
@@ -24,8 +25,10 @@ MonoBehaviour:
   - type: 1
     amount: 15
   powerCost: 1
-  produceType: 0
-  produceAmount: 0
-  produceInterval: 0
+  populationCost: 1
+  produceType: 2
+  produceAmount: 6
+  produceInterval: 5
   scaleWithContent: 0
+  extraProduction: []
   trainableUnits: []

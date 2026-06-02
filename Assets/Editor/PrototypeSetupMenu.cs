@@ -35,44 +35,66 @@ namespace Jiangshi.Editor
 
             EnsureFolders();
 
-            var basePrefab = CreateBuildingPrefab("CommandBase", PrimitiveType.Cube, new Vector3(2f, 1f, 2f), new Color(0.25f, 0.55f, 0.95f));
-            var wallPrefab = CreateBuildingPrefab("Wall", PrimitiveType.Cube, new Vector3(1f, 1f, 1f), new Color(0.45f, 0.45f, 0.45f));
+            var basePrefab = CreateBuildingPrefab("CommandBase", PrimitiveType.Cube, new Vector3(3f, 1.35f, 3f), new Color(0.25f, 0.55f, 0.95f));
+            var wallPrefab = CreateBuildingPrefab("Wall", PrimitiveType.Cube, new Vector3(2f, 1.35f, 1f), new Color(0.45f, 0.45f, 0.45f));
             var projectilePrefab = CreateProjectilePrefab();
-            var towerPrefab = CreateBuildingPrefab("Tower", PrimitiveType.Cylinder, new Vector3(1f, 1.8f, 1f), new Color(0.95f, 0.75f, 0.25f), projectilePrefab);
+            var towerPrefab = CreateBuildingPrefab("Tower", PrimitiveType.Cylinder, new Vector3(1f, 2.35f, 1f), new Color(0.95f, 0.75f, 0.25f), projectilePrefab);
             var soldierPrefab = CreateUnitPrefab<Soldier>("Soldier", PrimitiveType.Capsule, new Color(0.2f, 0.8f, 0.45f), Faction.Player);
             var zombiePrefab = CreateUnitPrefab<Zombie>("Zombie", PrimitiveType.Capsule, new Color(0.55f, 0.85f, 0.2f), Faction.Enemy);
             SetupSpriteAnimation(zombiePrefab, "Zombie", 4, 16);
 
-            var baseData = CreateBuildingData("CommandBaseData", "指挥基地", basePrefab, new Vector2Int(2, 2), 500, 0, 0, true);
-            CreateBuildingData("WallData", "城墙", wallPrefab, Vector2Int.one, 120, 10, 5, false);
+            var baseData = CreateBuildingData("CommandBaseData", "指挥基地", basePrefab, new Vector2Int(3, 3), 500, 0, 0, true);
+            var wallData = CreateBuildingData("WallData", "城墙", wallPrefab, new Vector2Int(2, 1), 120, 10, 5, false);
             var towerData = CreateBuildingData("TowerData", "箭塔", towerPrefab, Vector2Int.one, 180, 80, 30, false);
 
-            var goldMinePrefab = CreateProducerPrefab("GoldMine", new Color(0.95f, 0.85f, 0.2f));
-            var lumberMillPrefab = CreateProducerPrefab("LumberMill", new Color(0.4f, 0.7f, 0.25f));
-            var powerPlantPrefab = CreateProducerPrefab("PowerPlant", new Color(0.3f, 0.75f, 0.95f));
-            var farmPrefab = CreateProducerPrefab("Farm", new Color(0.85f, 0.75f, 0.3f));
-            var goldMineData = CreateProducerBuildingData("GoldMineData", "金矿", goldMinePrefab, 80, 60, 20, ResourceType.Gold, 8, 5f);
-            var lumberMillData2 = CreateProducerBuildingData("LumberMillData", "伐木场", lumberMillPrefab, 80, 40, 10, ResourceType.Wood, 5, 5f);
+            var goldMinePrefab = CreateProducerPrefab("GoldMine", new Color(0.65f, 0.45f, 0.25f), new Vector3(1f, 1.45f, 1f));
+            var lumberMillPrefab = CreateProducerPrefab("LumberMill", new Color(0.4f, 0.7f, 0.25f), new Vector3(1f, 1.45f, 1f));
+            var powerPlantPrefab = CreateProducerPrefab("PowerPlant", new Color(0.3f, 0.75f, 0.95f), new Vector3(1f, 1.45f, 1f));
+            var farmPrefab = CreateProducerPrefab("Farm", new Color(0.85f, 0.75f, 0.3f), new Vector3(1f, 1.35f, 1f));
+            var goldMineData = CreateProducerBuildingData("GoldMineData", "木屋", goldMinePrefab, 80, 40, 40, ResourceType.Population, 4, 5f);
+            var lumberMillData2 = CreateProducerBuildingData("LumberMillData", "伐木场", lumberMillPrefab, 80, 40, 10, ResourceType.Wood, 1, 5f);
             var powerPlantData = CreateProducerBuildingData("PowerPlantData", "发电厂", powerPlantPrefab, 100, 80, 30, ResourceType.Power, 10, 5f);
             var farmData = CreateProducerBuildingData("FarmData", "农场", farmPrefab, 60, 30, 15, ResourceType.Food, 6, 5f);
-            var ironMinePrefab = CreateProducerPrefab("IronMine", new Color(0.4f, 0.45f, 0.55f));
-            var copperMinePrefab = CreateProducerPrefab("CopperMine", new Color(0.7f, 0.45f, 0.2f));
-            var ironMineData = CreateProducerBuildingData("IronMineData", "铁矿场", ironMinePrefab, 80, 50, 20, ResourceType.Iron, 0, 5f);
-            var copperMineData = CreateProducerBuildingData("CopperMineData", "铜矿场", copperMinePrefab, 80, 50, 15, ResourceType.Copper, 0, 5f);
+            var ironMinePrefab = CreateProducerPrefab("IronMine", new Color(0.4f, 0.45f, 0.55f), new Vector3(1f, 1.45f, 1f));
+            var copperMinePrefab = CreateProducerPrefab("CopperMine", new Color(0.7f, 0.45f, 0.2f), new Vector3(1f, 1.45f, 1f));
+            var ironMineData = CreateProducerBuildingData("IronMineData", "铁矿场", ironMinePrefab, 80, 50, 20, ResourceType.Iron, 1, 5f);
+            var copperMineData = CreateProducerBuildingData("CopperMineData", "铜矿场", copperMinePrefab, 80, 50, 15, ResourceType.Copper, 1, 5f);
 
             // Set power costs and scaling
-            goldMineData.powerCost = 2;
+            goldMineData.buildCost = new[]
+            {
+                new ResourceAmount { type = ResourceType.Gold, amount = 40 },
+                new ResourceAmount { type = ResourceType.Wood, amount = 40 },
+                new ResourceAmount { type = ResourceType.Food, amount = 2 }
+            };
+            goldMineData.powerCost = 0;
+            goldMineData.populationCost = 0;
+            goldMineData.extraProduction = new[]
+            {
+                new ResourceAmount { type = ResourceType.Gold, amount = 4 }
+            };
+            wallData.populationCost = 1;
+            wallData.canRotatePlacement = true;
+            towerData.populationCost = 2;
             lumberMillData2.powerCost = 2;
+            lumberMillData2.populationCost = 2;
             lumberMillData2.scaleWithContent = Jiangshi.Grid.CellContent.Forest;
             ironMineData.powerCost = 2;
+            ironMineData.populationCost = 2;
             ironMineData.scaleWithContent = Jiangshi.Grid.CellContent.IronOre;
             copperMineData.powerCost = 2;
+            copperMineData.populationCost = 2;
             copperMineData.scaleWithContent = Jiangshi.Grid.CellContent.CopperOre;
             farmData.powerCost = 1;
+            farmData.populationCost = 1;
+            powerPlantData.populationCost = 2;
             EditorUtility.SetDirty(goldMineData);
             EditorUtility.SetDirty(lumberMillData2);
+            EditorUtility.SetDirty(wallData);
+            EditorUtility.SetDirty(towerData);
             EditorUtility.SetDirty(ironMineData);
             EditorUtility.SetDirty(copperMineData);
+            EditorUtility.SetDirty(powerPlantData);
             EditorUtility.SetDirty(farmData);
 
             var soldierData = CreateUnitData("SoldierData", "士兵", soldierPrefab, 60, 3.2f, 10, 1.5f, 1f);
@@ -82,16 +104,26 @@ namespace Jiangshi.Editor
             CreateWaveData("Wave01", zombieData);
 
             // Set training costs
-            soldierData.trainingCost = new[] { new ResourceAmount { type = ResourceType.Gold, amount = 30 } };
+            soldierData.trainingCost = new[]
+            {
+                new ResourceAmount { type = ResourceType.Gold, amount = 30 },
+                new ResourceAmount { type = ResourceType.Population, amount = 1 }
+            };
             soldierData.trainingTime = 6f;
-            archerData.trainingCost = new[] { new ResourceAmount { type = ResourceType.Gold, amount = 50 }, new ResourceAmount { type = ResourceType.Wood, amount = 20 } };
+            archerData.trainingCost = new[]
+            {
+                new ResourceAmount { type = ResourceType.Gold, amount = 50 },
+                new ResourceAmount { type = ResourceType.Wood, amount = 20 },
+                new ResourceAmount { type = ResourceType.Population, amount = 2 }
+            };
             archerData.trainingTime = 10f;
             EditorUtility.SetDirty(soldierData);
             EditorUtility.SetDirty(archerData);
 
-            var barracksPrefab = CreateBuildingPrefab("Barracks", PrimitiveType.Cube, new Vector3(1.2f, 1f, 1.2f), new Color(0.6f, 0.35f, 0.15f));
+            var barracksPrefab = CreateBuildingPrefab("Barracks", PrimitiveType.Cube, new Vector3(1.2f, 1.45f, 1.2f), new Color(0.6f, 0.35f, 0.15f));
             var barracksData = CreateBuildingData("BarracksData", "兵工厂", barracksPrefab, Vector2Int.one, 150, 100, 50, false);
             barracksData.trainableUnits = new[] { soldierData, archerData };
+            barracksData.populationCost = 3;
             barracksData.powerCost = 3;
             EditorUtility.SetDirty(barracksData);
 
@@ -189,8 +221,12 @@ namespace Jiangshi.Editor
             SetObjectReference(mapGenerator, "gridManager", gridManager);
             SetObjectReference(mapGenerator, "terrainGenerator", terrainGenerator);
             SetObjectReference(mapGenerator, "forestPrefab", forestPrefab);
+            SetObjectArray(mapGenerator, "forestSprites", LoadForestSprites());
             SetObjectReference(mapGenerator, "ironOrePrefab", ironOrePrefab);
             SetObjectReference(mapGenerator, "copperOrePrefab", copperOrePrefab);
+            SetObjectReference(mapGenerator, "zombieData", AssetDatabase.LoadAssetAtPath<UnitData>($"{UnitDataRoot}/ZombieData.asset"));
+            SetObjectReference(mapGenerator, "unitManager", unitManager);
+            SetObjectReference(mapGenerator, "defaultTarget", commandBase.transform);
 
             SetObjectReference(terrainGenerator, "gridManager", gridManager);
             var grassTiles = CreateTerrainTileset("Grass", new Color(0.28f, 0.45f, 0.2f), new Color(0.22f, 0.35f, 0.15f));
@@ -345,6 +381,8 @@ namespace Jiangshi.Editor
             instance.transform.localScale = scale;
             instance.AddComponent<BoxCollider>().size = Vector3.one;
             instance.AddComponent<Damageable>();
+            instance.AddComponent<HitFlash>();
+            instance.AddComponent<DeathEffect>();
             instance.AddComponent<FactionMember>().SetFaction(Faction.Player);
             instance.AddComponent<Jiangshi.Building.Building>();
             instance.AddComponent<Jiangshi.UI.UnitHealthBar>();
@@ -375,14 +413,17 @@ namespace Jiangshi.Editor
             return SavePrefab(instance, $"{PrefabRoot}/Projectile.prefab");
         }
 
-        private static GameObject CreateProducerPrefab(string name, Color color)
+        private static GameObject CreateProducerPrefab(string name, Color color, Vector3 scale)
         {
             var instance = new GameObject(name);
             instance.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            instance.transform.localScale = scale;
             var sr = instance.AddComponent<SpriteRenderer>();
             sr.sprite = SpriteFactory.CreateColorSprite(name, color);
             instance.AddComponent<BoxCollider>().size = Vector3.one;
             instance.AddComponent<Damageable>();
+            instance.AddComponent<HitFlash>();
+            instance.AddComponent<DeathEffect>();
             instance.AddComponent<FactionMember>().SetFaction(Faction.Player);
             instance.AddComponent<Jiangshi.Building.Building>();
             instance.AddComponent<Jiangshi.UI.UnitHealthBar>();
@@ -396,21 +437,22 @@ namespace Jiangshi.Editor
             instance.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             var sr = instance.AddComponent<SpriteRenderer>();
             sr.sprite = SpriteFactory.CreateColorSprite(name, color);
-            instance.AddComponent<BoxCollider>().size = Vector3.one;
+            var collider = instance.AddComponent<BoxCollider>();
+            collider.size = Vector3.one;
+            collider.enabled = !name.EndsWith("Ore", System.StringComparison.Ordinal);
             return SavePrefab(instance, $"{PrefabRoot}/{name}.prefab");
         }
 
         private static Object[] CreateTerrainTileset(string name, Color center, Color edge)
         {
-            // Check for hand-drawn tileset first
             var tilesetPath = $"Assets/Art/Sprites/Terrain_{name}_Tileset.png";
             if (System.IO.File.Exists(tilesetPath))
             {
-                var sliced = SpriteFactory.SliceSpriteSheet($"Terrain_{name}_Tileset", 9, 16);
-                if (sliced != null && sliced.Length >= 9)
+                var slicedSheet = SpriteFactory.SliceGridSpriteSheet($"Terrain_{name}_Tileset", 3, 3);
+                if (slicedSheet != null && slicedSheet.Length >= 9)
                 {
                     var result = new Object[9];
-                    for (var i = 0; i < 9; i++) result[i] = sliced[i];
+                    for (var i = 0; i < 9; i++) result[i] = slicedSheet[i];
                     return result;
                 }
             }
@@ -431,6 +473,29 @@ namespace Jiangshi.Editor
             }
 
             return sprites;
+        }
+
+        private static Object[] LoadForestSprites()
+        {
+            var paths = new[]
+            {
+                "Assets/Art/Sprites/Forest.png",
+                "Assets/Art/Sprites/橙色树.png",
+                "Assets/Art/Sprites/红色树.png",
+                "Assets/Art/Sprites/枯树.png"
+            };
+
+            var sprites = new System.Collections.Generic.List<Object>();
+            foreach (var path in paths)
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (sprite != null)
+                {
+                    sprites.Add(sprite);
+                }
+            }
+
+            return sprites.ToArray();
         }
 
         private static void SetupSpriteAnimation(GameObject prefab, string spriteName, int frameCount, int frameSize = 32)
@@ -475,6 +540,8 @@ namespace Jiangshi.Editor
             sr.sprite = SpriteFactory.CreateColorSprite(name, color);
             instance.AddComponent<BoxCollider>().size = Vector3.one;
             instance.AddComponent<Damageable>();
+            instance.AddComponent<HitFlash>();
+            instance.AddComponent<DeathEffect>();
             instance.AddComponent<FactionMember>().SetFaction(faction);
             instance.AddComponent<T>();
             instance.AddComponent<Jiangshi.UI.UnitHealthBar>();
@@ -577,10 +644,10 @@ namespace Jiangshi.Editor
             var cameraObject = new GameObject("Main Camera");
             var camera = cameraObject.AddComponent<Camera>();
             cameraObject.tag = "MainCamera";
-            cameraObject.transform.position = new Vector3(64f, 72f, -56f);
+            cameraObject.transform.position = new Vector3(64f, 72f, -6f);
             cameraObject.transform.rotation = Quaternion.Euler(55f, 0f, 0f);
             camera.orthographic = true;
-            camera.orthographicSize = 40f;
+            camera.orthographicSize = 18f;
             cameraObject.AddComponent<Jiangshi.UI.RtsCameraController>();
             return camera;
         }
@@ -654,38 +721,39 @@ namespace Jiangshi.Editor
             var buildPanel = CreatePanel(
                 canvasObject.transform,
                 "Build Panel",
-                new Vector2(0f, 1f),
-                new Vector2(0f, 1f),
-                new Vector2(0f, 1f),
-                new Vector2(24f, -370f),
-                new Vector2(360f, 692f),
+                new Vector2(1f, 1f),
+                new Vector2(1f, 1f),
+                new Vector2(1f, 1f),
+                new Vector2(-24f, -24f),
+                new Vector2(320f, 548f),
                 new Color(0.045f, 0.055f, 0.062f, 0.9f));
 
             CreateAccentBar(buildPanel.transform, "Build Accent", new Vector2(18f, -12f), new Vector2(72f, 4f), new Color(0.92f, 0.68f, 0.25f, 1f));
-            var buildTitle = CreateText(buildPanel.transform, "Build Title", "建造", 24, new Vector2(18f, -20f), new Vector2(324f, 30f));
+            var buildTitle = CreateText(buildPanel.transform, "Build Title", "建造", 22, new Vector2(18f, -18f), new Vector2(284f, 28f));
             buildTitle.alignment = TextAnchor.MiddleLeft;
             buildTitle.color = new Color(0.95f, 0.86f, 0.66f, 1f);
 
-            var baseButton = CreateButton(buildPanel.transform, "Command Base Build Button", "1. 指挥基地", Vector2.zero, new Vector2(324f, 54f));
-            var wallButton = CreateButton(buildPanel.transform, "Wall Build Button", "2. 城墙", Vector2.zero, new Vector2(324f, 54f));
-            var towerButton = CreateButton(buildPanel.transform, "Tower Build Button", "3. 箭塔", Vector2.zero, new Vector2(324f, 54f));
-            var goldMineButton = CreateButton(buildPanel.transform, "Gold Mine Build Button", "4. 金矿", Vector2.zero, new Vector2(324f, 54f));
-            var lumberMillButton = CreateButton(buildPanel.transform, "Lumber Mill Build Button", "5. 伐木场", Vector2.zero, new Vector2(324f, 54f));
-            var barracksButton = CreateButton(buildPanel.transform, "Barracks Build Button", "6. 兵工厂", Vector2.zero, new Vector2(324f, 54f));
-            var powerPlantButton = CreateButton(buildPanel.transform, "Power Plant Build Button", "7. 发电厂", Vector2.zero, new Vector2(324f, 54f));
-            var farmButton = CreateButton(buildPanel.transform, "Farm Build Button", "8. 农场", Vector2.zero, new Vector2(324f, 54f));
-            var ironMineButton = CreateButton(buildPanel.transform, "Iron Mine Build Button", "9. 铁矿场", Vector2.zero, new Vector2(324f, 54f));
-            var copperMineButton = CreateButton(buildPanel.transform, "Copper Mine Build Button", "0. 铜矿场", Vector2.zero, new Vector2(324f, 54f));
-            SetupRect(baseButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -62f), new Vector2(324f, 54f));
-            SetupRect(wallButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -124f), new Vector2(324f, 54f));
-            SetupRect(towerButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -186f), new Vector2(324f, 54f));
-            SetupRect(goldMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -248f), new Vector2(324f, 54f));
-            SetupRect(lumberMillButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -310f), new Vector2(324f, 54f));
-            SetupRect(barracksButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -372f), new Vector2(324f, 54f));
-            SetupRect(powerPlantButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -434f), new Vector2(324f, 54f));
-            SetupRect(farmButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -496f), new Vector2(324f, 54f));
-            SetupRect(ironMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -558f), new Vector2(324f, 54f));
-            SetupRect(copperMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -620f), new Vector2(324f, 54f));
+            var compactButtonSize = new Vector2(284f, 42f);
+            var baseButton = CreateButton(buildPanel.transform, "Command Base Build Button", "1. 指挥基地", Vector2.zero, compactButtonSize);
+            var wallButton = CreateButton(buildPanel.transform, "Wall Build Button", "2. 城墙", Vector2.zero, compactButtonSize);
+            var towerButton = CreateButton(buildPanel.transform, "Tower Build Button", "3. 箭塔", Vector2.zero, compactButtonSize);
+            var goldMineButton = CreateButton(buildPanel.transform, "Gold Mine Build Button", "4. 金矿", Vector2.zero, compactButtonSize);
+            var lumberMillButton = CreateButton(buildPanel.transform, "Lumber Mill Build Button", "5. 伐木场", Vector2.zero, compactButtonSize);
+            var barracksButton = CreateButton(buildPanel.transform, "Barracks Build Button", "6. 兵工厂", Vector2.zero, compactButtonSize);
+            var powerPlantButton = CreateButton(buildPanel.transform, "Power Plant Build Button", "7. 发电厂", Vector2.zero, compactButtonSize);
+            var farmButton = CreateButton(buildPanel.transform, "Farm Build Button", "8. 农场", Vector2.zero, compactButtonSize);
+            var ironMineButton = CreateButton(buildPanel.transform, "Iron Mine Build Button", "9. 铁矿场", Vector2.zero, compactButtonSize);
+            var copperMineButton = CreateButton(buildPanel.transform, "Copper Mine Build Button", "0. 铜矿场", Vector2.zero, compactButtonSize);
+            SetupRect(baseButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -58f), compactButtonSize);
+            SetupRect(wallButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -106f), compactButtonSize);
+            SetupRect(towerButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -154f), compactButtonSize);
+            SetupRect(goldMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -202f), compactButtonSize);
+            SetupRect(lumberMillButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -250f), compactButtonSize);
+            SetupRect(barracksButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -298f), compactButtonSize);
+            SetupRect(powerPlantButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -346f), compactButtonSize);
+            SetupRect(farmButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -394f), compactButtonSize);
+            SetupRect(ironMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -442f), compactButtonSize);
+            SetupRect(copperMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -490f), compactButtonSize);
             var baseButtonLabel = baseButton.GetComponentInChildren<Text>();
             var wallButtonLabel = wallButton.GetComponentInChildren<Text>();
             var towerButtonLabel = towerButton.GetComponentInChildren<Text>();
@@ -696,16 +764,16 @@ namespace Jiangshi.Editor
             var farmButtonLabel = farmButton.GetComponentInChildren<Text>();
             var ironMineButtonLabel = ironMineButton.GetComponentInChildren<Text>();
             var copperMineButtonLabel = copperMineButton.GetComponentInChildren<Text>();
-            baseButtonLabel.fontSize = 17;
-            wallButtonLabel.fontSize = 17;
-            towerButtonLabel.fontSize = 17;
-            goldMineButtonLabel.fontSize = 17;
-            lumberMillButtonLabel.fontSize = 17;
-            barracksButtonLabel.fontSize = 17;
-            powerPlantButtonLabel.fontSize = 17;
-            farmButtonLabel.fontSize = 17;
-            ironMineButtonLabel.fontSize = 17;
-            copperMineButtonLabel.fontSize = 17;
+            baseButtonLabel.fontSize = 15;
+            wallButtonLabel.fontSize = 15;
+            towerButtonLabel.fontSize = 15;
+            goldMineButtonLabel.fontSize = 15;
+            lumberMillButtonLabel.fontSize = 15;
+            barracksButtonLabel.fontSize = 15;
+            powerPlantButtonLabel.fontSize = 15;
+            farmButtonLabel.fontSize = 15;
+            ironMineButtonLabel.fontSize = 15;
+            copperMineButtonLabel.fontSize = 15;
             var baseData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{BuildingDataRoot}/CommandBaseData.asset");
             var wallData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{BuildingDataRoot}/WallData.asset");
             var towerData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{BuildingDataRoot}/TowerData.asset");
@@ -929,8 +997,8 @@ namespace Jiangshi.Editor
                 : GameObject.CreatePrimitive(PrimitiveType.Cube);
 
             instance.name = "CommandBase";
-            instance.transform.position = new Vector3(64f, 0.5f, 64f);
-            instance.transform.localScale = new Vector3(2f, 1f, 2f);
+            instance.transform.position = new Vector3(64.5f, 0.5f, 64.5f);
+            instance.transform.localScale = new Vector3(3f, 1.35f, 3f);
 
             var building = instance.GetComponent<Jiangshi.Building.Building>();
             if (building != null && baseData != null)

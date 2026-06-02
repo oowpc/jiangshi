@@ -12,20 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c5b24ba2fb6850499608ad8f629cf43, type: 3}
   m_Name: GoldMineData
   m_EditorClassIdentifier: 
-  displayName: "\u91D1\u77FF"
+  displayName: "\u6728\u5C4B"
   prefab: {fileID: 6223805715510977014, guid: 2ccf617f9546eb249803a5600a0a290d, type: 3}
   size: {x: 1, y: 1}
+  canRotatePlacement: 0
   maxHealth: 80
   blocksMovement: 1
   triggersDefeatOnDestroyed: 0
   buildCost:
   - type: 0
-    amount: 60
+    amount: 40
   - type: 1
-    amount: 20
-  powerCost: 2
-  produceType: 0
-  produceAmount: 0
-  produceInterval: 0
+    amount: 40
+  - type: 2
+    amount: 2
+  powerCost: 0
+  populationCost: 0
+  produceType: 4
+  produceAmount: 4
+  produceInterval: 5
   scaleWithContent: 0
+  extraProduction:
+  - type: 0
+    amount: 4
   trainableUnits: []

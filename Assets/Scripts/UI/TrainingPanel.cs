@@ -115,7 +115,12 @@ namespace Jiangshi.UI
                 {
                     ResourceType.Gold => $"{c.amount}金",
                     ResourceType.Wood => $"{c.amount}木",
-                    _ => $"{c.amount}"
+                    ResourceType.Food => $"{c.amount}食",
+                    ResourceType.Power => $"{c.amount}电",
+                    ResourceType.Population => $"{c.amount}人",
+                    ResourceType.Iron => $"{c.amount}铁",
+                    ResourceType.Copper => $"{c.amount}铜",
+                    _ => $"{c.amount} {c.type}"
                 };
             }
             return s;

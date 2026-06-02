@@ -22,4 +22,6 @@ MonoBehaviour:
   trainingCost:
   - type: 0
     amount: 30
+  - type: 4
+    amount: 1
   trainingTime: 6

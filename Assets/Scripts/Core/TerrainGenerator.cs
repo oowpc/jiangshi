@@ -10,6 +10,7 @@ namespace Jiangshi.Core
         [SerializeField] private GridManager gridManager;
         [SerializeField] private float terrainScale = 0.04f;
         [SerializeField] private float vegetationScale = 0.08f;
+        [SerializeField] private float tileOverlap = 0.01f;
         [SerializeField] private int seed;
 
         [Header("Tilesets (3x3 = 9 sprites, order: TL,T,TR,L,C,R,BL,B,BR)")]
@@ -47,7 +48,6 @@ namespace Jiangshi.Core
             var h = gridManager.Height;
             terrainMap = new TerrainType[w, h];
 
-            // Pass 1: determine terrain types
             for (var x = 0; x < w; x++)
             {
                 for (var y = 0; y < h; y++)
@@ -82,7 +82,6 @@ namespace Jiangshi.Core
                 }
             }
 
-            // Pass 2: place sprites with auto-tiling
             var parent = new GameObject("Terrain").transform;
 
             for (var x = 0; x < w; x++)
@@ -97,25 +96,20 @@ namespace Jiangshi.Core
                     go.transform.SetParent(parent);
                     go.transform.position = gridManager.GridToWorld(new GridPosition(x, y));
                     go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    var overlapScale = 1f + Mathf.Max(0f, tileOverlap);
+                    go.transform.localScale = new Vector3(overlapScale, overlapScale, 1f);
                     var sr = go.AddComponent<SpriteRenderer>();
                     sr.sprite = sprite;
-                    sr.sortingOrder = -1;
+                    sr.sortingOrder = -5;
                 }
             }
         }
 
-        // 3x3 tileset layout:
-        // [0]TL [1]T  [2]TR
-        // [3]L  [4]C  [5]R
-        // [6]BL [7]B  [8]BR
         private Sprite GetAutoTileSprite(int x, int y, TerrainType type)
         {
             var tileset = GetTileset(type);
             if (tileset == null || tileset.Length < 9)
-            {
-                // Fallback: use index 0 or first available
                 return tileset != null && tileset.Length > 0 ? tileset[0] : null;
-            }
 
             var same = type;
             var t = GetTerrain(x, y + 1) == same;
@@ -123,31 +117,30 @@ namespace Jiangshi.Core
             var l = GetTerrain(x - 1, y) == same;
             var r = GetTerrain(x + 1, y) == same;
 
-            // Pick from 3x3 based on which edges border different terrain
             int index;
-            if (!t && !l) index = 0;       // top-left corner
-            else if (!t && !r) index = 2;   // top-right corner
-            else if (!b && !l) index = 6;   // bottom-left corner
-            else if (!b && !r) index = 8;   // bottom-right corner
-            else if (!t) index = 1;         // top edge
-            else if (!b) index = 7;         // bottom edge
-            else if (!l) index = 3;         // left edge
-            else if (!r) index = 5;         // right edge
-            else index = 4;                 // center (all same)
+            if (!t && !l) index = 0;
+            else if (!t && !r) index = 2;
+            else if (!b && !l) index = 6;
+            else if (!b && !r) index = 8;
+            else if (!t) index = 1;
+            else if (!b) index = 7;
+            else if (!l) index = 3;
+            else if (!r) index = 5;
+            else index = 4;
 
             return tileset[index];
         }
 
         private Sprite[] GetTileset(TerrainType type)
         {
-            return type switch
+            var ts = type switch
             {
-                TerrainType.Grass => grassTileset,
                 TerrainType.Snow => snowTileset,
                 TerrainType.Dirt => dirtTileset,
                 TerrainType.Water => waterTileset,
                 _ => grassTileset
             };
+            return ts != null && ts.Length > 0 ? ts : grassTileset;
         }
     }
 }

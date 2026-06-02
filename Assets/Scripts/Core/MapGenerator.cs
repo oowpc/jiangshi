@@ -8,6 +8,7 @@ namespace Jiangshi.Core
         [SerializeField] private GridManager gridManager;
         [SerializeField] private TerrainGenerator terrainGenerator;
         [SerializeField] private GameObject forestPrefab;
+        [SerializeField] private Sprite[] forestSprites;
         [SerializeField] private GameObject ironOrePrefab;
         [SerializeField] private GameObject copperOrePrefab;
         [SerializeField] private float forestThreshold = 0.6f;
@@ -16,6 +17,24 @@ namespace Jiangshi.Core
         [SerializeField] private int copperClusterCount = 6;
         [SerializeField] private int copperClusterSize = 5;
         [SerializeField] private int clearRadius = 8;
+
+        [Header("Forest Visuals")]
+        [SerializeField] private Vector2 forestWidthScaleRange = new(1.15f, 1.45f);
+        [SerializeField] private Vector2 forestHeightScaleRange = new(1.55f, 2.15f);
+        [SerializeField] private float forestPositionJitter = 0.35f;
+        [SerializeField] private int forestBaseSortingOrder = 5000;
+        [SerializeField] private float forestSortingUnitsPerWorld = 10f;
+
+        [Header("Ore Decals")]
+        [SerializeField] private Vector2 oreDecalScaleRange = new(1.35f, 1.7f);
+        [SerializeField] private float oreDecalPositionJitter = 0.15f;
+        [SerializeField] private bool randomizeOreDecalRotation = true;
+
+        [Header("Initial Zombies")]
+        [SerializeField] private Units.UnitData zombieData;
+        [SerializeField] private Units.UnitManager unitManager;
+        [SerializeField] private int initialZombieCount = 20;
+        [SerializeField] private Transform defaultTarget;
 
         private void Start()
         {
@@ -33,6 +52,7 @@ namespace Jiangshi.Core
             SpawnForestByNoise(center);
             SpawnClusters(ironOrePrefab, ironClusterCount, ironClusterSize, false, CellContent.IronOre, center);
             SpawnClusters(copperOrePrefab, copperClusterCount, copperClusterSize, false, CellContent.CopperOre, center);
+            SpawnInitialZombies(center);
         }
 
         private void SpawnForestByNoise(Vector2Int center)
@@ -61,9 +81,63 @@ namespace Jiangshi.Core
                     cell.IsWalkable = false;
                     cell.Content = CellContent.Forest;
 
-                    Instantiate(forestPrefab, gridManager.GridToWorld(new GridPosition(x, y)), forestPrefab.transform.rotation);
+                    SpawnForestVisual(new GridPosition(x, y));
                 }
             }
+        }
+
+        private void SpawnForestVisual(GridPosition position)
+        {
+            if (forestPrefab == null)
+            {
+                return;
+            }
+
+            var worldPosition = gridManager.GridToWorld(position);
+            if (forestPositionJitter > 0f)
+            {
+                worldPosition.x += Random.Range(-forestPositionJitter, forestPositionJitter);
+                worldPosition.z += Random.Range(-forestPositionJitter, forestPositionJitter);
+            }
+
+            var instance = Instantiate(forestPrefab, worldPosition, Quaternion.identity);
+            var spriteRenderer = instance.GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                var sprite = PickForestSprite();
+                if (sprite != null)
+                {
+                    spriteRenderer.sprite = sprite;
+                }
+
+                spriteRenderer.flipX = Random.value < 0.5f;
+                ApplyForestDepthSorting(spriteRenderer, worldPosition, Random.Range(-2, 3));
+            }
+
+            var widthScale = Random.Range(
+                Mathf.Min(forestWidthScaleRange.x, forestWidthScaleRange.y),
+                Mathf.Max(forestWidthScaleRange.x, forestWidthScaleRange.y));
+            var heightScale = Random.Range(
+                Mathf.Min(forestHeightScaleRange.x, forestHeightScaleRange.y),
+                Mathf.Max(forestHeightScaleRange.x, forestHeightScaleRange.y));
+            instance.transform.localScale = new Vector3(widthScale, heightScale, 1f);
+
+            DisableColliders(instance);
+        }
+
+        private Sprite PickForestSprite()
+        {
+            if (forestSprites == null || forestSprites.Length == 0)
+            {
+                return null;
+            }
+
+            return forestSprites[Random.Range(0, forestSprites.Length)];
+        }
+
+        private void ApplyForestDepthSorting(SpriteRenderer spriteRenderer, Vector3 worldPosition, int offset)
+        {
+            spriteRenderer.sortingOrder = forestBaseSortingOrder - Mathf.RoundToInt(worldPosition.z * forestSortingUnitsPerWorld) + offset;
         }
 
         private void SpawnClusters(GameObject prefab, int clusterCount, int clusterSize, bool blocksWalking, CellContent content, Vector2Int center)
@@ -104,7 +178,8 @@ namespace Jiangshi.Core
                     if (blocksWalking)
                         cell.IsWalkable = false;
                     cell.Content = content;
-                    Instantiate(prefab, gridManager.GridToWorld(pos), prefab.transform.rotation);
+                    var instance = Instantiate(prefab, GetClusterObjectPosition(pos, content), GetClusterObjectRotation(prefab, content));
+                    ApplyClusterObjectVariation(instance, content);
                     placed++;
 
                     var dirs = new GridPosition[] {
@@ -118,12 +193,89 @@ namespace Jiangshi.Core
             }
         }
 
+        private Vector3 GetClusterObjectPosition(GridPosition position, CellContent content)
+        {
+            var worldPosition = gridManager.GridToWorld(position);
+            if (IsOreContent(content) && oreDecalPositionJitter > 0f)
+            {
+                worldPosition.x += Random.Range(-oreDecalPositionJitter, oreDecalPositionJitter);
+                worldPosition.z += Random.Range(-oreDecalPositionJitter, oreDecalPositionJitter);
+            }
+
+            return worldPosition;
+        }
+
+        private Quaternion GetClusterObjectRotation(GameObject prefab, CellContent content)
+        {
+            if (!IsOreContent(content) || !randomizeOreDecalRotation)
+            {
+                return prefab.transform.rotation;
+            }
+
+            return Quaternion.Euler(90f, Random.Range(0f, 360f), 0f);
+        }
+
+        private void ApplyClusterObjectVariation(GameObject instance, CellContent content)
+        {
+            if (!IsOreContent(content))
+            {
+                return;
+            }
+
+            var minScale = Mathf.Min(oreDecalScaleRange.x, oreDecalScaleRange.y);
+            var maxScale = Mathf.Max(oreDecalScaleRange.x, oreDecalScaleRange.y);
+            var scale = Random.Range(minScale, maxScale);
+            instance.transform.localScale = new Vector3(scale, scale, scale);
+        }
+
+        private static bool IsOreContent(CellContent content)
+        {
+            return content == CellContent.IronOre || content == CellContent.CopperOre;
+        }
+
+        private static void DisableColliders(GameObject instance)
+        {
+            foreach (var collider in instance.GetComponentsInChildren<Collider>(true))
+            {
+                collider.enabled = false;
+            }
+
+            foreach (var collider in instance.GetComponentsInChildren<Collider2D>(true))
+            {
+                collider.enabled = false;
+            }
+        }
+
         private void Shuffle(GridPosition[] arr)
         {
             for (var i = arr.Length - 1; i > 0; i--)
             {
                 var j = Random.Range(0, i + 1);
                 (arr[i], arr[j]) = (arr[j], arr[i]);
+            }
+        }
+
+        private void SpawnInitialZombies(Vector2Int center)
+        {
+            if (zombieData == null || unitManager == null) return;
+
+            for (var i = 0; i < initialZombieCount; i++)
+            {
+                for (var attempt = 0; attempt < 30; attempt++)
+                {
+                    var x = Random.Range(0, gridManager.Width);
+                    var y = Random.Range(0, gridManager.Height);
+                    if (Mathf.Abs(x - center.x) < clearRadius && Mathf.Abs(y - center.y) < clearRadius)
+                        continue;
+                    var cell = gridManager.GetCell(new GridPosition(x, y));
+                    if (cell == null || !cell.IsWalkable) continue;
+
+                    var pos = gridManager.GridToWorld(new GridPosition(x, y));
+                    var unit = unitManager.Spawn(zombieData, pos, Quaternion.identity);
+                    if (unit is Units.Zombie zombie && defaultTarget != null)
+                        zombie.SetTarget(defaultTarget);
+                    break;
+                }
             }
         }
     }

@@ -78,7 +78,62 @@ namespace Jiangshi.Waves
             if (unit is Zombie zombie)
             {
                 zombie.SetTarget(defaultTarget);
+                zombie.SetAggressive();
             }
+        }
+
+        public void SpawnPopulationZombies(Vector3 center, int count)
+        {
+            if (count <= 0)
+            {
+                return;
+            }
+
+            if (unitManager == null)
+            {
+                unitManager = FindObjectOfType<UnitManager>();
+            }
+
+            var zombieData = GetZombieData();
+            if (unitManager == null || zombieData == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                var offset = Random.insideUnitCircle * 0.7f;
+                var position = center + new Vector3(offset.x, 0f, offset.y);
+                var unit = unitManager.Spawn(zombieData, position, Quaternion.identity);
+                if (unit is Zombie zombie)
+                {
+                    zombie.SetTarget(defaultTarget);
+                    zombie.SetAggressive();
+                }
+            }
+        }
+
+        private UnitData GetZombieData()
+        {
+            if (waves == null)
+            {
+                return null;
+            }
+
+            foreach (var wave in waves)
+            {
+                if (wave == null || wave.enemy == null || wave.enemy.prefab == null)
+                {
+                    continue;
+                }
+
+                if (wave.enemy.prefab.GetComponent<Zombie>() != null)
+                {
+                    return wave.enemy;
+                }
+            }
+
+            return null;
         }
 
         private void RefreshStatusText()

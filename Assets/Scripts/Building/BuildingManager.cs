@@ -62,7 +62,7 @@ namespace Jiangshi.Building
         {
             if (building != null && building.HasOrigin && building.Data != null && gridManager != null)
             {
-                gridManager.SetOccupied(building.Origin, building.Data.size, false, true);
+                gridManager.SetOccupied(building.Origin, building.OccupiedSize, false, true);
             }
 
             Unregister(building);

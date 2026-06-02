@@ -41,14 +41,27 @@ namespace Jiangshi.Pathfinding
             var gp = gridManager.WorldToGrid(worldPos);
             if (gp.X < 0 || gp.X >= width || gp.Y < 0 || gp.Y >= height)
             {
-                // Outside map: point toward center
-                var center = new Vector3(width * 0.5f, 0f, height * 0.5f);
-                var dir = center - worldPos;
-                dir.y = 0f;
-                return dir.normalized;
+                return GetFallbackDirection(worldPos);
             }
+
             var d = directions[gp.X, gp.Y];
-            return new Vector3(d.x, 0f, d.y);
+            if (d.sqrMagnitude > 0.001f)
+            {
+                return new Vector3(d.x, 0f, d.y).normalized;
+            }
+
+            return GetFallbackDirection(worldPos);
+        }
+
+        private Vector3 GetFallbackDirection(Vector3 worldPos)
+        {
+            var fallbackTarget = target != null
+                ? target.position
+                : gridManager.GridToWorld(new GridPosition(width / 2, height / 2));
+
+            var dir = fallbackTarget - worldPos;
+            dir.y = 0f;
+            return dir.sqrMagnitude > 0.001f ? dir.normalized : Vector3.zero;
         }
 
         private void Recalculate()
