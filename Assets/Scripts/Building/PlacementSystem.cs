@@ -77,6 +77,11 @@ namespace Jiangshi.Building
 
         public void SelectBuilding(BuildingData buildingData)
         {
+            if (buildingData != null && !CanSelectBuilding(buildingData))
+            {
+                buildingData = null;
+            }
+
             if (selectedBuilding == buildingData)
             {
                 return;
@@ -96,6 +101,13 @@ namespace Jiangshi.Building
             }
 
             SelectBuilding(buildingOptions[index]);
+        }
+
+        public bool CanSelectBuilding(BuildingData buildingData)
+        {
+            return buildingData != null
+                && buildingData.prefab != null
+                && !IsUniqueBuildingAlreadyPresent(buildingData);
         }
 
         public bool TryPlaceAtMouse()
@@ -126,6 +138,11 @@ namespace Jiangshi.Building
         public bool TryPlace(BuildingData buildingData, GridPosition gridPosition)
         {
             if (buildingData == null || buildingData.prefab == null || gridManager == null || resourceManager == null)
+            {
+                return false;
+            }
+
+            if (IsUniqueBuildingAlreadyPresent(buildingData))
             {
                 return false;
             }
@@ -167,10 +184,40 @@ namespace Jiangshi.Building
                 && buildingData.prefab != null
                 && gridManager != null
                 && resourceManager != null
+                && !IsUniqueBuildingAlreadyPresent(buildingData)
                 && gridManager.CanOccupy(gridPosition, occupiedSize)
                 && resourceManager.CanAfford(buildingData.buildCost)
                 && CanAffordPower(buildingData)
                 && CanAffordPopulation(buildingData);
+        }
+
+        private bool IsUniqueBuildingAlreadyPresent(BuildingData buildingData)
+        {
+            if (buildingData == null || !buildingData.triggersDefeatOnDestroyed)
+            {
+                return false;
+            }
+
+            if (buildingManager != null)
+            {
+                foreach (var building in buildingManager.Buildings)
+                {
+                    if (building != null && building.Data == buildingData)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            foreach (var building in FindObjectsOfType<Building>())
+            {
+                if (building != null && building.Data == buildingData)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool CanAffordPower(BuildingData buildingData)
@@ -255,7 +302,13 @@ namespace Jiangshi.Building
 
         private Quaternion GetPlacementRotation(BuildingData buildingData)
         {
-            return placementRotated && CanRotate(buildingData) ? Quaternion.Euler(0f, 90f, 0f) : Quaternion.identity;
+            var baseRotation = buildingData != null && buildingData.prefab != null
+                ? buildingData.prefab.transform.rotation
+                : Quaternion.identity;
+
+            return placementRotated && CanRotate(buildingData)
+                ? Quaternion.Euler(0f, 90f, 0f) * baseRotation
+                : baseRotation;
         }
 
         private static bool CanRotate(BuildingData buildingData)

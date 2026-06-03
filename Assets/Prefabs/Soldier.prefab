@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 4651953642929565878}
   - component: {fileID: 1554211084957560305}
   - component: {fileID: 135518205635140170}
+  - component: {fileID: 717874984657290370}
   m_Layer: 0
   m_Name: Soldier
   m_TagString: Untagged
@@ -80,7 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: a8b0e4dc49078e845836728bdf056922, type: 3}
+  m_Sprite: {fileID: -382247087425062856, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -179,6 +180,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   data: {fileID: 0}
   maxOverlapHits: 64
+  projectilePrefab: {fileID: 8196761598583758126, guid: d622df8cf56438e4ab7155bc23f2da25, type: 3}
+  projectileSpawnForwardOffset: 0.35
 --- !u!114 &135518205635140170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,3 +194,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 458d36404eb1e26498a7f63fed96617e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &717874984657290370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8799140471592762789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6b3d4a967c84bb4a9f22224dc9cbfa2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  idleFrames:
+  - {fileID: -382247087425062856, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  - {fileID: 7803703133269436437, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  - {fileID: -5345430090860618985, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  - {fileID: 1443761017015093675, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  - {fileID: 561733497368069309, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  - {fileID: -3635871155863494597, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  - {fileID: 8265998314294692481, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  - {fileID: 8326896754753802636, guid: c3b59f227cc5045418e9750666857a3e, type: 3}
+  walkFrames:
+  - {fileID: 5748780913101855652, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  - {fileID: -7459682453291939784, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  - {fileID: 6896497974211992829, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  - {fileID: 4501585447663738414, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  - {fileID: 7993943666826188171, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  - {fileID: 6733497713798505524, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  - {fileID: 5944834531933279197, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  - {fileID: 5594146818006077185, guid: 93fc6c4d9571f0846bb4414aa6efe86d, type: 3}
+  attackFrames:
+  - {fileID: 8654473051930581345, guid: b2a7b357148120c429daacfd6149fe1a, type: 3}
+  - {fileID: 8520541209477400143, guid: b2a7b357148120c429daacfd6149fe1a, type: 3}
+  - {fileID: -4406368119536106409, guid: b2a7b357148120c429daacfd6149fe1a, type: 3}
+  - {fileID: -3666459494185755079, guid: b2a7b357148120c429daacfd6149fe1a, type: 3}
+  - {fileID: -2444752426972038955, guid: b2a7b357148120c429daacfd6149fe1a, type: 3}
+  - {fileID: 5853577226886400271, guid: b2a7b357148120c429daacfd6149fe1a, type: 3}
+  reloadFrames:
+  - {fileID: 1574428383525946818, guid: 4916008a6a6e7dd469164709165718b9, type: 3}
+  - {fileID: -9136097696486264456, guid: 4916008a6a6e7dd469164709165718b9, type: 3}
+  - {fileID: -9036932687013913731, guid: 4916008a6a6e7dd469164709165718b9, type: 3}
+  - {fileID: 1581962280271352775, guid: 4916008a6a6e7dd469164709165718b9, type: 3}
+  - {fileID: 1379633327779735762, guid: 4916008a6a6e7dd469164709165718b9, type: 3}
+  - {fileID: 8495955621974437856, guid: 4916008a6a6e7dd469164709165718b9, type: 3}
+  deathFrames:
+  - {fileID: -4344957942796968211, guid: 394e352444dd79c4dbf5eead431b2a02, type: 3}
+  - {fileID: 1668606202172665041, guid: 394e352444dd79c4dbf5eead431b2a02, type: 3}
+  - {fileID: -9030038178260308344, guid: 394e352444dd79c4dbf5eead431b2a02, type: 3}
+  - {fileID: 8247987167820938094, guid: 394e352444dd79c4dbf5eead431b2a02, type: 3}
+  - {fileID: -2404216379132803604, guid: 394e352444dd79c4dbf5eead431b2a02, type: 3}
+  - {fileID: -4275784418724202330, guid: 394e352444dd79c4dbf5eead431b2a02, type: 3}
+  - {fileID: -7144148417693999248, guid: 394e352444dd79c4dbf5eead431b2a02, type: 3}
+  idleFps: 6
+  walkFps: 8
+  attackFps: 10
+  reloadFps: 8
+  deathFps: 8

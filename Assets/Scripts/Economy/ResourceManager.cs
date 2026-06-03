@@ -8,10 +8,10 @@ namespace Jiangshi.Economy
     {
         [SerializeField] private ResourceAmount[] startingResources =
         {
-            new ResourceAmount { type = ResourceType.Gold, amount = 300 },
-            new ResourceAmount { type = ResourceType.Wood, amount = 120 },
+            new ResourceAmount { type = ResourceType.Gold, amount = 200 },
+            new ResourceAmount { type = ResourceType.Wood, amount = 50 },
             new ResourceAmount { type = ResourceType.Food, amount = 10 },
-            new ResourceAmount { type = ResourceType.Power, amount = 10 }
+            new ResourceAmount { type = ResourceType.Power, amount = 30 }
         };
 
         private readonly Dictionary<ResourceType, int> resources = new();

@@ -60,12 +60,27 @@ namespace Jiangshi.Waves
             if (wave.enemyGroups != null && wave.enemyGroups.Length > 0)
             {
                 var groupIndex = 0;
+                var spawnedCount = 0;
                 var spawnDirections = Mathf.Max(1, wave.spawnDirections);
-                for (var i = 0; i < wave.count; i++)
+                var remainingCounts = new int[wave.enemyGroups.Length];
+                var remainingTotal = 0;
+                for (var i = 0; i < wave.enemyGroups.Length; i++)
                 {
-                    var group = wave.enemyGroups[groupIndex];
+                    remainingCounts[i] = Mathf.Max(0, wave.enemyGroups[i].count);
+                    remainingTotal += remainingCounts[i];
+                }
+
+                while (spawnedCount < wave.count && remainingTotal > 0)
+                {
+                    if (remainingCounts[groupIndex] > 0)
+                    {
+                        SpawnEnemyFromGroup(wave.enemyGroups[groupIndex], spawnDirections);
+                        remainingCounts[groupIndex]--;
+                        remainingTotal--;
+                        spawnedCount++;
+                    }
+
                     groupIndex = (groupIndex + 1) % wave.enemyGroups.Length;
-                    SpawnEnemyFromGroup(group, spawnDirections);
                     yield return new WaitForSeconds(wave.spawnInterval);
                 }
             }

@@ -5,7 +5,7 @@ namespace Jiangshi.Core
     public sealed class SurvivalTimer : MonoBehaviour
     {
         [SerializeField] private GameManager gameManager;
-        [SerializeField] private float durationSeconds = 180f;
+        [SerializeField] private float durationSeconds = 600f;
 
         private float elapsedSeconds;
 

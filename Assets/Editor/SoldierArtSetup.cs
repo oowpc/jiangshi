@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Jiangshi.Combat;
 using Jiangshi.Units;
 using UnityEditor;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace Jiangshi.Editor
         private const int FrameHeight = 512;
         private const float PixelsPerUnit = 512f;
         private const string SoldierPrefabPath = "Assets/Prefabs/Soldier.prefab";
+        private const string ProjectilePrefabPath = "Assets/Prefabs/Projectile.prefab";
 
         private static readonly AnimationSheet[] Sheets =
         {
@@ -150,6 +152,7 @@ namespace Jiangshi.Editor
             try
             {
                 var spriteRenderer = prefab.GetComponent<SpriteRenderer>();
+                var soldier = prefab.GetComponent<Soldier>();
                 var visualAnimator = prefab.GetComponent<UnitVisualAnimator>();
                 if (visualAnimator == null)
                 {
@@ -169,12 +172,33 @@ namespace Jiangshi.Editor
                 }
 
                 serializedObject.ApplyModifiedPropertiesWithoutUndo();
+                BindProjectile(soldier);
                 PrefabUtility.SaveAsPrefabAsset(prefab, SoldierPrefabPath);
             }
             finally
             {
                 PrefabUtility.UnloadPrefabContents(prefab);
             }
+        }
+
+        private static void BindProjectile(Soldier soldier)
+        {
+            if (soldier == null)
+            {
+                return;
+            }
+
+            var projectilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectilePrefabPath);
+            var projectile = projectilePrefab != null ? projectilePrefab.GetComponent<Projectile>() : null;
+            if (projectile == null)
+            {
+                Debug.LogWarning($"Projectile prefab missing: {ProjectilePrefabPath}");
+                return;
+            }
+
+            var serializedObject = new SerializedObject(soldier);
+            serializedObject.FindProperty("projectilePrefab").objectReferenceValue = projectile;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static Sprite[] LoadSprites(AnimationSheet sheet)

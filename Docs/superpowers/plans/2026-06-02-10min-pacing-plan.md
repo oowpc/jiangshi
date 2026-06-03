@@ -15,7 +15,7 @@
 ### 修改
 - `Assets/Scripts/Waves/WaveData.cs` — 增加 `EnemyGroup` 结构体和 `spawnDirections` 字段
 - `Assets/Scripts/Waves/WaveManager.cs` — 多敌混编生成逻辑
-- `Assets/Scripts/Economy/ResourceManager.cs` — 起始资源改为 200金+50木+30电
+- `Assets/Scripts/Economy/ResourceManager.cs` — 起始资源改为 200金+50木+10食物+30电
 - `Assets/Scripts/Core/SurvivalTimer.cs` — `durationSeconds` 默认值改为 600
 - `Assets/Editor/PrototypeSetupMenu.cs` — 创建新丧尸 prefab/数据 + 4 波 WaveData 资产
 
@@ -167,7 +167,7 @@ namespace Jiangshi.Waves
 **Files:**
 - Modify: `Assets/Scripts/Waves/WaveManager.cs`
 
-- [ ] **Step 1: 更新默认状态文本为中文化**
+- [x] **Step 1: 更新默认状态文本为中文化**
 
 修改 `StatusText` 相关字符串：
 
@@ -267,7 +267,7 @@ WaveManager 的中文化已在之前完成，确认无需修改。
 - Replace: `Assets/ScriptableObjects/Waves/Wave01.asset`
 - New: `Assets/ScriptableObjects/Waves/Wave02.asset`, `Wave03.asset`, `Wave04.asset`
 
-- [ ] **Step 1: 重写 CreateWaveData 为通用创建方法，增加 enemyGroups 支持**
+- [x] **Step 1: 重写 CreateWaveData 为通用创建方法，增加 enemyGroups 支持**
 
 将 `PrototypeSetupMenu` 类中的 `CreateWaveData` 方法替换为：
 
@@ -300,7 +300,7 @@ WaveManager 的中文化已在之前完成，确认无需修改。
         }
 ```
 
-- [ ] **Step 2: 在 CreatePrototypeAssets 中替换旧的 WaveData 创建**
+- [x] **Step 2: 在 CreatePrototypeAssets 中替换旧的 WaveData 创建**
 
 找到 `CreateWaveData("Wave01", zombieData);`（约第 104 行），替换为 4 个波次的创建：
 
@@ -314,7 +314,7 @@ WaveManager 的中文化已在之前完成，确认无需修改。
 
 注意：需要确保 `CreateWaveData` 调用在 `zombieData`、`fastZombieData`、`largeZombieData` 变量定义之后。
 
-- [ ] **Step 3: 更新场景生成中 WaveData 引用**
+- [x] **Step 3: 更新场景生成中 WaveData 引用**
 
 在 `CreatePrototypeScene` 方法中，将第 194 行的：
 
@@ -345,12 +345,12 @@ WaveManager 的中文化已在之前完成，确认无需修改。
 
 ---
 
-### Task 6: 更新起始资源为 200金/50木/30电
+### Task 6: 更新起始资源为 200金/50木/10食物/30电
 
 **Files:**
 - Modify: `Assets/Scripts/Economy/ResourceManager.cs`
 
-- [ ] **Step 1: 修改 ResourceManager 中 startingResources 默认值**
+- [x] **Step 1: 修改 ResourceManager 中 startingResources 默认值**
 
 将第 9-15 行：
 
@@ -371,6 +371,7 @@ WaveManager 的中文化已在之前完成，确认无需修改。
         {
             new ResourceAmount { type = ResourceType.Gold, amount = 200 },
             new ResourceAmount { type = ResourceType.Wood, amount = 50 },
+            new ResourceAmount { type = ResourceType.Food, amount = 10 },
             new ResourceAmount { type = ResourceType.Power, amount = 30 }
         };
 ```
@@ -382,7 +383,7 @@ WaveManager 的中文化已在之前完成，确认无需修改。
 **Files:**
 - Modify: `Assets/Scripts/Core/SurvivalTimer.cs`
 
-- [ ] **Step 1: 修改 durationSeconds 默认值**
+- [x] **Step 1: 修改 durationSeconds 默认值**
 
 将第 8 行：
 
@@ -406,13 +407,13 @@ WaveManager 的中文化已在之前完成，确认无需修改。
 - 4 个 WaveData 资产正确创建
 - 高速/大型丧尸 prefab 和 UnitData 正确创建
 - 场景中 WaveManager 正确引用了 4 个波次
-- 起始资源显示为 200金/50木/30电
+- 起始资源显示为 200金/50木/10食物/30电
 - 生存倒计时显示 10:00
 
 - [ ] **Step 2: 运行场景验证**
 
 按 Play 测试：
-1. 0:00 → 资源为 200金/50木/30电
+1. 0:00 → 资源为 200金/50木/10食物/30电
 2. 2:00 → 第一波 20 普通丧尸抵达
 3. 4:00 → 第二波 21普通 + 9高速抵达
 4. 6:30 → 第三波 15普通 + 12高速 + 8大型抵达

@@ -40,6 +40,7 @@ namespace Jiangshi.Editor
             var projectilePrefab = CreateProjectilePrefab();
             var towerPrefab = CreateBuildingPrefab("Tower", PrimitiveType.Cylinder, new Vector3(1f, 2.35f, 1f), new Color(0.95f, 0.75f, 0.25f), projectilePrefab);
             var soldierPrefab = CreateUnitPrefab<Soldier>("Soldier", PrimitiveType.Capsule, new Color(0.2f, 0.8f, 0.45f), Faction.Player);
+            SetObjectReference(soldierPrefab.GetComponent<Soldier>(), "projectilePrefab", projectilePrefab.GetComponent<Projectile>());
             var zombiePrefab = CreateUnitPrefab<Zombie>("Zombie", PrimitiveType.Capsule, new Color(0.55f, 0.85f, 0.2f), Faction.Enemy);
             SetupSpriteAnimation(zombiePrefab, "Zombie", 4, 16);
 
@@ -97,11 +98,10 @@ namespace Jiangshi.Editor
             EditorUtility.SetDirty(powerPlantData);
             EditorUtility.SetDirty(farmData);
 
-            var soldierData = CreateUnitData("SoldierData", "士兵", soldierPrefab, 60, 3.2f, 10, 1.5f, 1f);
-            var archerPrefab = CreateUnitPrefab<Archer>("Archer", PrimitiveType.Capsule, new Color(0.7f, 0.3f, 0.8f), Faction.Player);
-            var archerData = CreateUnitData("ArcherData", "弓箭手", archerPrefab, 40, 2.8f, 8, 6f, 1.3f);
+            var soldierData = CreateUnitData("SoldierData", "士兵", soldierPrefab, 60, 3.2f, 10, 6f, 1f);
+            var swordsmanPrefab = CreateUnitPrefab<Swordsman>("Swordsman", PrimitiveType.Capsule, new Color(0.7f, 0.3f, 0.8f), Faction.Player);
+            var swordsmanData = CreateUnitData("SwordsmanData", "剑客", swordsmanPrefab, 75, 3.4f, 16, 1.35f, 0.9f);
             var zombieData = CreateUnitData("ZombieData", "僵尸", zombiePrefab, 35, 2f, 6, 1.2f, 1.1f);
-            CreateWaveData("Wave01", zombieData);
             var fastZombiePrefab = CreateUnitPrefab<Zombie>("FastZombie", PrimitiveType.Capsule, new Color(0.9f, 0.25f, 0.15f), Faction.Enemy, new Vector3(0.75f, 0.75f, 0.75f));
             SetupSpriteAnimation(fastZombiePrefab, "Zombie", 4, 16);
             var fastZombieData = CreateUnitData("FastZombieData", "高速僵尸", fastZombiePrefab, 30, 4f, 4, 1.0f, 1.0f);
@@ -113,6 +113,11 @@ namespace Jiangshi.Editor
             EditorUtility.SetDirty(fastZombieData);
             EditorUtility.SetDirty(largeZombieData);
 
+            CreateWaveData("Wave01", 120f, 20, 0.35f, "第一波：僵尸接近中", 2, (zombieData, 20));
+            CreateWaveData("Wave02", 240f, 30, 0.30f, "第二波：它们更快了", 2, (zombieData, 21), (fastZombieData, 9));
+            CreateWaveData("Wave03", 390f, 35, 0.25f, "第三波：庞然大物出现", 3, (zombieData, 15), (fastZombieData, 12), (largeZombieData, 8));
+            CreateWaveData("Wave04", 510f, 40, 0.20f, "第四波：最终冲击", 4, (zombieData, 10), (fastZombieData, 15), (largeZombieData, 15));
+
             // Set training costs
             soldierData.trainingCost = new[]
             {
@@ -120,19 +125,19 @@ namespace Jiangshi.Editor
                 new ResourceAmount { type = ResourceType.Population, amount = 1 }
             };
             soldierData.trainingTime = 6f;
-            archerData.trainingCost = new[]
+            swordsmanData.trainingCost = new[]
             {
-                new ResourceAmount { type = ResourceType.Gold, amount = 50 },
-                new ResourceAmount { type = ResourceType.Wood, amount = 20 },
+                new ResourceAmount { type = ResourceType.Gold, amount = 45 },
+                new ResourceAmount { type = ResourceType.Iron, amount = 15 },
                 new ResourceAmount { type = ResourceType.Population, amount = 2 }
             };
-            archerData.trainingTime = 10f;
+            swordsmanData.trainingTime = 8f;
             EditorUtility.SetDirty(soldierData);
-            EditorUtility.SetDirty(archerData);
+            EditorUtility.SetDirty(swordsmanData);
 
             var barracksPrefab = CreateBuildingPrefab("Barracks", PrimitiveType.Cube, new Vector3(1.2f, 1.45f, 1.2f), new Color(0.6f, 0.35f, 0.15f));
             var barracksData = CreateBuildingData("BarracksData", "兵工厂", barracksPrefab, Vector2Int.one, 150, 100, 50, false);
-            barracksData.trainableUnits = new[] { soldierData, archerData };
+            barracksData.trainableUnits = new[] { soldierData, swordsmanData };
             barracksData.populationCost = 3;
             barracksData.powerCost = 3;
             EditorUtility.SetDirty(barracksData);
@@ -143,6 +148,9 @@ namespace Jiangshi.Editor
             CreateObstaclePrefab("Forest", new Color(0.1f, 0.45f, 0.15f));
             CreateObstaclePrefab("IronOre", new Color(0.55f, 0.55f, 0.6f));
             CreateObstaclePrefab("CopperOre", new Color(0.8f, 0.5f, 0.25f));
+
+            SoldierArtSetup.Apply();
+            SwordsmanArtSetup.Apply();
 
             Selection.activeObject = towerData != null ? towerData : baseData;
             AssetDatabase.SaveAssets();
@@ -201,7 +209,10 @@ namespace Jiangshi.Editor
             var farmData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{BuildingDataRoot}/FarmData.asset");
             var ironMineData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{BuildingDataRoot}/IronMineData.asset");
             var copperMineData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{BuildingDataRoot}/CopperMineData.asset");
-            var waveData = AssetDatabase.LoadAssetAtPath<WaveData>($"{WaveDataRoot}/Wave01.asset");
+            var wave01 = AssetDatabase.LoadAssetAtPath<WaveData>($"{WaveDataRoot}/Wave01.asset");
+            var wave02 = AssetDatabase.LoadAssetAtPath<WaveData>($"{WaveDataRoot}/Wave02.asset");
+            var wave03 = AssetDatabase.LoadAssetAtPath<WaveData>($"{WaveDataRoot}/Wave03.asset");
+            var wave04 = AssetDatabase.LoadAssetAtPath<WaveData>($"{WaveDataRoot}/Wave04.asset");
             var commandBase = CreateCommandBase(baseData);
             var spawnPoints = CreateSpawnPoints();
 
@@ -216,13 +227,21 @@ namespace Jiangshi.Editor
             SetObjectArray(placementSystem, "buildingOptions", new Object[] { baseData, wallData, towerData, goldMineData, lumberMillData, barracksData, powerPlantData, farmData, ironMineData, copperMineData });
             SetObjectReference(unitCommand, "worldCamera", camera);
             SetObjectReference(survivalTimer, "gameManager", gameManager);
+            SetFloat(survivalTimer, "durationSeconds", 600f);
+            SetResourceArray(resourceManager, "startingResources", new[]
+            {
+                new ResourceAmount { type = ResourceType.Gold, amount = 200 },
+                new ResourceAmount { type = ResourceType.Wood, amount = 50 },
+                new ResourceAmount { type = ResourceType.Food, amount = 10 },
+                new ResourceAmount { type = ResourceType.Power, amount = 30 }
+            });
             SetObjectReference(buildingManager, "gridManager", gridManager);
 
             SetObjectReference(waveManager, "unitManager", unitManager);
             SetObjectReference(waveManager, "gridManager", gridManager);
             SetObjectReference(waveManager, "defaultTarget", commandBase.transform);
             SetObjectArray(waveManager, "spawnPoints", spawnPoints);
-            SetObjectArray(waveManager, "waves", new Object[] { waveData });
+            SetObjectArray(waveManager, "waves", new Object[] { wave01, wave02, wave03, wave04 });
 
             var forestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabRoot}/Forest.prefab");
             var ironOrePrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabRoot}/IronOre.prefab");
@@ -437,7 +456,8 @@ namespace Jiangshi.Editor
             var instance = new GameObject("Projectile");
             var sr = instance.AddComponent<SpriteRenderer>();
             sr.sprite = SpriteFactory.CreateColorSprite("Projectile", new Color(1f, 0.4f, 0.1f), 8);
-            instance.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
+            sr.sortingOrder = 80;
+            instance.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
             instance.AddComponent<Projectile>();
             return SavePrefab(instance, $"{PrefabRoot}/Projectile.prefab");
         }
@@ -651,15 +671,31 @@ namespace Jiangshi.Editor
             return data;
         }
 
-        private static void CreateWaveData(string assetName, UnitData enemy)
+        private static WaveData CreateWaveData(string assetName, float startTime, int count, float spawnInterval, string warningText, int spawnDirections, params (UnitData enemy, int count)[] groups)
         {
             var wave = ScriptableObject.CreateInstance<WaveData>();
-            wave.startTime = 30f;
-            wave.enemy = enemy;
-            wave.count = 20;
-            wave.spawnInterval = 0.35f;
-            wave.warningText = "Incoming horde";
+            wave.startTime = startTime;
+            wave.count = count;
+            wave.spawnInterval = spawnInterval;
+            wave.warningText = warningText;
+            wave.spawnDirections = spawnDirections;
+
+            if (groups != null && groups.Length > 0)
+            {
+                wave.enemy = groups[0].enemy;
+                wave.enemyGroups = new WaveData.EnemyGroup[groups.Length];
+                for (var i = 0; i < groups.Length; i++)
+                {
+                    wave.enemyGroups[i] = new WaveData.EnemyGroup
+                    {
+                        enemy = groups[i].enemy,
+                        count = groups[i].count
+                    };
+                }
+            }
+
             SaveAsset(wave, $"{WaveDataRoot}/{assetName}.asset");
+            return wave;
         }
 
         private static void SaveAsset(Object asset, string path)
@@ -739,17 +775,17 @@ namespace Jiangshi.Editor
             CreateInsetBox(statusPanel.transform, "Resource Surface", new Vector2(14f, -54f), new Vector2(348f, 78f), new Color(0.08f, 0.105f, 0.12f, 0.84f));
             CreateInsetBox(statusPanel.transform, "Base Surface", new Vector2(14f, -138f), new Vector2(348f, 34f), new Color(0.075f, 0.095f, 0.11f, 0.78f));
 
-            var gameStateText = CreateText(statusPanel.transform, "Game State Text", "STATE  BOOT", 18, new Vector2(18f, -24f), new Vector2(190f, 26f));
+            var gameStateText = CreateText(statusPanel.transform, "Game State Text", "状态: 启动中", 18, new Vector2(18f, -24f), new Vector2(190f, 26f));
             gameStateText.color = new Color(0.8f, 0.93f, 0.9f, 1f);
             var pauseButton = CreateButton(statusPanel.transform, "Pause Button", "暂停", Vector2.zero, new Vector2(106f, 36f));
             SetupRect(pauseButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(260f, -18f), new Vector2(96f, 34f));
             var pauseButtonLabel = pauseButton.GetComponentInChildren<Text>();
-            pauseButtonLabel.text = "PAUSE";
-            var goldText = CreateText(statusPanel.transform, "Gold Text", "GOLD  0", 18, new Vector2(28f, -66f), new Vector2(150f, 24f));
-            var woodText = CreateText(statusPanel.transform, "Wood Text", "WOOD  0", 18, new Vector2(196f, -66f), new Vector2(150f, 24f));
-            var foodText = CreateText(statusPanel.transform, "Food Text", "FOOD  0", 18, new Vector2(28f, -100f), new Vector2(150f, 24f));
-            var powerText = CreateText(statusPanel.transform, "Power Text", "PWR 0   POP 0", 18, new Vector2(196f, -100f), new Vector2(150f, 24f));
-            var baseHealthText = CreateText(statusPanel.transform, "Base Health Text", "BASE  0/0", 18, new Vector2(28f, -140f), new Vector2(316f, 24f));
+            pauseButtonLabel.text = "暂停";
+            var goldText = CreateText(statusPanel.transform, "Gold Text", "金币: 0", 18, new Vector2(28f, -66f), new Vector2(150f, 24f));
+            var woodText = CreateText(statusPanel.transform, "Wood Text", "木材: 0", 18, new Vector2(196f, -66f), new Vector2(150f, 24f));
+            var foodText = CreateText(statusPanel.transform, "Food Text", "食物: 0", 18, new Vector2(28f, -100f), new Vector2(150f, 24f));
+            var powerText = CreateText(statusPanel.transform, "Power Text", "电力: 0  人口: 0", 18, new Vector2(196f, -100f), new Vector2(150f, 24f));
+            var baseHealthText = CreateText(statusPanel.transform, "Base Health Text", "基地: 0/0", 18, new Vector2(28f, -140f), new Vector2(316f, 24f));
 
             var objectivePanel = CreatePanel(
                 canvasObject.transform,
@@ -762,10 +798,10 @@ namespace Jiangshi.Editor
                 new Color(0.035f, 0.047f, 0.052f, 0.90f));
 
             CreateAccentBar(objectivePanel.transform, "Objective Accent", new Vector2(28f, -12f), new Vector2(96f, 4f), new Color(0.92f, 0.68f, 0.25f, 1f));
-            var survivalText = CreateText(objectivePanel.transform, "Survival Text", "SURVIVE  03:00", 28, new Vector2(26f, -28f), new Vector2(468f, 34f));
+            var survivalText = CreateText(objectivePanel.transform, "Survival Text", "存活: 10:00", 28, new Vector2(26f, -28f), new Vector2(468f, 34f));
             survivalText.alignment = TextAnchor.MiddleCenter;
             survivalText.color = new Color(0.95f, 0.86f, 0.66f, 1f);
-            var waveStatusText = CreateText(objectivePanel.transform, "Wave Status Text", "No waves", 18, new Vector2(28f, -70f), new Vector2(464f, 26f));
+            var waveStatusText = CreateText(objectivePanel.transform, "Wave Status Text", "无波次", 18, new Vector2(28f, -70f), new Vector2(464f, 26f));
             waveStatusText.alignment = TextAnchor.MiddleCenter;
 
             var buildPanel = CreatePanel(
@@ -781,7 +817,6 @@ namespace Jiangshi.Editor
             CreateAccentBar(buildPanel.transform, "Build Accent", new Vector2(18f, -12f), new Vector2(72f, 4f), new Color(0.92f, 0.68f, 0.25f, 1f));
             var buildTitle = CreateText(buildPanel.transform, "Build Title", "建造", 22, new Vector2(18f, -18f), new Vector2(284f, 28f));
             buildTitle.alignment = TextAnchor.MiddleLeft;
-            buildTitle.text = "BUILD";
             buildTitle.color = new Color(0.95f, 0.86f, 0.66f, 1f);
 
             var compactButtonSize = new Vector2(292f, 38f);
@@ -848,15 +883,13 @@ namespace Jiangshi.Editor
 
             var defeatTitle = CreateText(defeatPanel.transform, "Defeat Title", "失败", 44, new Vector2(0f, 56f), new Vector2(360f, 58f));
             defeatTitle.alignment = TextAnchor.MiddleCenter;
-            defeatTitle.text = "DEFEAT";
+            defeatTitle.text = "失败";
             defeatTitle.color = new Color(0.95f, 0.42f, 0.36f, 1f);
 
             var defeatMessage = CreateText(defeatPanel.transform, "Defeat Message", "指挥基地被摧毁了。", 22, new Vector2(0f, 6f), new Vector2(360f, 40f));
             defeatMessage.alignment = TextAnchor.MiddleCenter;
-            defeatMessage.text = "The command base has fallen.";
 
             var restartButton = CreateButton(defeatPanel.transform, "Restart Button", "重新开始", new Vector2(0f, -68f), new Vector2(180f, 48f));
-            restartButton.GetComponentInChildren<Text>().text = "RESTART";
             defeatPanel.SetActive(false);
 
             var victoryPanel = CreatePanel(
@@ -871,15 +904,13 @@ namespace Jiangshi.Editor
 
             var victoryTitle = CreateText(victoryPanel.transform, "Victory Title", "胜利", 44, new Vector2(0f, 56f), new Vector2(360f, 58f));
             victoryTitle.alignment = TextAnchor.MiddleCenter;
-            victoryTitle.text = "VICTORY";
+            victoryTitle.text = "胜利";
             victoryTitle.color = new Color(0.55f, 0.95f, 0.68f, 1f);
 
             var victoryMessage = CreateText(victoryPanel.transform, "Victory Message", "指挥基地存活了下来！", 22, new Vector2(0f, 6f), new Vector2(360f, 40f));
             victoryMessage.alignment = TextAnchor.MiddleCenter;
-            victoryMessage.text = "The command base survived.";
 
             var victoryRestartButton = CreateButton(victoryPanel.transform, "Victory Restart Button", "重新开始", new Vector2(0f, -68f), new Vector2(180f, 48f));
-            victoryRestartButton.GetComponentInChildren<Text>().text = "RESTART";
             victoryPanel.SetActive(false);
 
             SetObjectReference(hud, "gameManager", gameManager);
@@ -1119,6 +1150,22 @@ namespace Jiangshi.Editor
             for (var i = 0; i < values.Length; i++)
             {
                 property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
+            }
+
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetResourceArray(Object target, string propertyName, ResourceAmount[] values)
+        {
+            var serializedObject = new SerializedObject(target);
+            var property = serializedObject.FindProperty(propertyName);
+            property.arraySize = values.Length;
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                var element = property.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("type").enumValueIndex = (int)values[i].type;
+                element.FindPropertyRelative("amount").intValue = values[i].amount;
             }
 
             serializedObject.ApplyModifiedPropertiesWithoutUndo();

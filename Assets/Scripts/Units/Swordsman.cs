@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Jiangshi.Units
 {
-    public sealed class Swordsman : Unit, IMovableUnit
+    public sealed class Swordsman : Unit, IMovableUnit, IAttackCommandable
     {
         [SerializeField] private int maxOverlapHits = 64;
 
@@ -12,6 +12,7 @@ namespace Jiangshi.Units
         private Collider[] overlapHits;
         private UnitVisualAnimator visualAnimator;
         private bool isDead;
+        private Damageable lockedAttackTarget;
 
         private void Awake()
         {
@@ -21,12 +22,30 @@ namespace Jiangshi.Units
 
         public void MoveTo(Vector3 position)
         {
+            lockedAttackTarget = null;
             moveTarget = position;
+        }
+
+        public void AttackTarget(Damageable target)
+        {
+            if (!IsValidAttackTarget(target))
+            {
+                return;
+            }
+
+            lockedAttackTarget = target;
+            moveTarget = null;
+            nextAttackTime = Mathf.Min(nextAttackTime, Time.time);
         }
 
         private void Update()
         {
             if (isDead || Data == null) return;
+
+            if (TryHandleLockedAttackTarget())
+            {
+                return;
+            }
 
             if (TryAttack())
             {
@@ -97,6 +116,55 @@ namespace Jiangshi.Units
             }
 
             return false;
+        }
+
+        private bool TryHandleLockedAttackTarget()
+        {
+            if (lockedAttackTarget == null)
+            {
+                return false;
+            }
+
+            if (!IsValidAttackTarget(lockedAttackTarget))
+            {
+                lockedAttackTarget = null;
+                return false;
+            }
+
+            var direction = lockedAttackTarget.transform.position - transform.position;
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude > Data.attackRange * Data.attackRange)
+            {
+                var movement = direction.normalized;
+                visualAnimator?.SetFacing(movement);
+                visualAnimator?.PlayWalk();
+                transform.position += movement * Data.moveSpeed * Time.deltaTime;
+                return true;
+            }
+
+            visualAnimator?.SetFacing(direction);
+            if (Time.time < nextAttackTime)
+            {
+                visualAnimator?.PlayReload();
+                return true;
+            }
+
+            visualAnimator?.PlayAttack();
+            lockedAttackTarget.TakeDamage(Data.attackDamage);
+            nextAttackTime = Time.time + Data.attackInterval;
+            return true;
+        }
+
+        private static bool IsValidAttackTarget(Damageable target)
+        {
+            if (target == null || target.IsDead)
+            {
+                return false;
+            }
+
+            var factionMember = target.GetComponentInParent<FactionMember>();
+            return factionMember != null && factionMember.Faction == Faction.Enemy;
         }
     }
 }

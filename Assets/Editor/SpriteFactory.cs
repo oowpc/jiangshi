@@ -133,6 +133,8 @@ namespace Jiangshi.Editor
             importer.spriteImportMode = SpriteImportMode.Multiple;
             importer.spritePixelsPerUnit = Mathf.Max(tileWidth, tileHeight);
             importer.filterMode = FilterMode.Point;
+            importer.mipmapEnabled = false;
+            importer.alphaIsTransparency = false;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.wrapMode = TextureWrapMode.Clamp;
 

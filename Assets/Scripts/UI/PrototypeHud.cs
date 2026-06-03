@@ -50,8 +50,11 @@ namespace Jiangshi.UI
 
         private Button settingsButton;
         private Button settingsCloseButton;
+        private Button settingsGuideButton;
         private Button settingsQuitButton;
+        private Button guideCloseButton;
         private GameObject settingsPanel;
+        private GameObject guidePanel;
         private bool settingsPausedGame;
         private GameObject demolitionPanel;
         private Text demolitionTitleText;
@@ -59,6 +62,9 @@ namespace Jiangshi.UI
         private Button demolitionButton;
         private Text demolitionButtonLabel;
         private Jiangshi.Building.Building selectedDemolitionBuilding;
+        private GameObject buildTooltipPanel;
+        private Text buildTooltipText;
+        private int hoveredBuildIndex = -1;
 
         private void Awake()
         {
@@ -128,6 +134,7 @@ namespace Jiangshi.UI
 
             EnsureSettingsUi();
             EnsureDemolitionUi();
+            EnsureBuildTooltipUi();
             RegisterBuildButtons();
             RefreshAll();
         }
@@ -154,6 +161,7 @@ namespace Jiangshi.UI
             RefreshWaveStatus();
             HandleBuildingSelectionInput();
             RefreshDemolitionUi();
+            UpdateBuildTooltipPosition();
         }
 
         private void OnDestroy()
@@ -205,9 +213,19 @@ namespace Jiangshi.UI
                 settingsCloseButton.onClick.RemoveListener(CloseSettings);
             }
 
+            if (settingsGuideButton != null)
+            {
+                settingsGuideButton.onClick.RemoveListener(OpenGuide);
+            }
+
             if (settingsQuitButton != null)
             {
                 settingsQuitButton.onClick.RemoveListener(QuitGame);
+            }
+
+            if (guideCloseButton != null)
+            {
+                guideCloseButton.onClick.RemoveListener(CloseGuide);
             }
 
             if (demolitionButton != null)
@@ -266,6 +284,8 @@ namespace Jiangshi.UI
                 settingsPanel.SetActive(false);
             }
 
+            CloseGuide();
+
             if (settingsPausedGame && gameManager != null && gameManager.State == GameState.Paused)
             {
                 gameManager.SetPaused(false);
@@ -282,6 +302,22 @@ namespace Jiangshi.UI
 #else
             Application.Quit();
 #endif
+        }
+
+        private void OpenGuide()
+        {
+            if (guidePanel != null)
+            {
+                guidePanel.SetActive(true);
+            }
+        }
+
+        private void CloseGuide()
+        {
+            if (guidePanel != null)
+            {
+                guidePanel.SetActive(false);
+            }
         }
 
         private void HandleBuildingSelectionInput()
@@ -374,12 +410,6 @@ namespace Jiangshi.UI
 
         private void RefreshResources()
         {
-            SetText(goldText, $"GOLD  {GetResource(ResourceType.Gold)}");
-            SetText(woodText, $"WOOD  {GetResource(ResourceType.Wood)}");
-            SetText(foodText, $"FOOD  {GetResource(ResourceType.Food)}");
-            SetText(powerText, $"PWR {GetResource(ResourceType.Power)}   POP {GetResource(ResourceType.Population)}");
-            return;
-
             SetText(goldText, $"金币: {GetResource(ResourceType.Gold)}");
             SetText(woodText, $"木材: {GetResource(ResourceType.Wood)}");
             SetText(foodText, $"食物: {GetResource(ResourceType.Food)}");
@@ -395,15 +425,6 @@ namespace Jiangshi.UI
         {
             if (commandBase == null)
             {
-                SetText(baseHealthText, "BASE  DESTROYED");
-                return;
-            }
-
-            SetText(baseHealthText, $"BASE  {commandBase.CurrentHealth}/{commandBase.MaxHealth}");
-            return;
-
-            if (commandBase == null)
-            {
                 SetText(baseHealthText, "基地: 已摧毁");
                 return;
             }
@@ -413,31 +434,19 @@ namespace Jiangshi.UI
 
         private void RefreshWaveStatus()
         {
-            SetText(waveStatusText, waveManager != null ? waveManager.StatusText : "No waves");
+            SetText(waveStatusText, waveManager != null ? waveManager.StatusText : "无波次");
         }
 
         private void RefreshSurvivalTime()
         {
             if (survivalTimer == null)
             {
-                SetText(survivalText, "SURVIVE  --:--");
-                return;
-            }
-
-            var hudRemaining = Mathf.CeilToInt(survivalTimer.RemainingSeconds);
-            SetText(survivalText, $"SURVIVE  {hudRemaining / 60:00}:{hudRemaining % 60:00}");
-            return;
-
-            if (survivalTimer == null)
-            {
                 SetText(survivalText, "存活: --:--");
                 return;
             }
 
-            var remaining = Mathf.CeilToInt(survivalTimer.RemainingSeconds);
-            var minutes = remaining / 60;
-            var seconds = remaining % 60;
-            SetText(survivalText, $"存活: {minutes:00}:{seconds:00}");
+            var hudRemaining = Mathf.CeilToInt(survivalTimer.RemainingSeconds);
+            SetText(survivalText, $"存活: {hudRemaining / 60:00}:{hudRemaining % 60:00}");
         }
 
         private void RefreshGameState()
@@ -445,14 +454,14 @@ namespace Jiangshi.UI
             var hudState = gameManager != null ? gameManager.State : GameState.Boot;
             var hudStateLabel = hudState switch
             {
-                GameState.Playing => "PLAYING",
-                GameState.Paused => "PAUSED",
-                GameState.Defeat => "DEFEAT",
-                GameState.Victory => "VICTORY",
-                _ => "BOOTING"
+                GameState.Playing => "进行中",
+                GameState.Paused => "已暂停",
+                GameState.Defeat => "失败",
+                GameState.Victory => "胜利",
+                _ => "启动中"
             };
-            SetText(gameStateText, $"STATE  {hudStateLabel}");
-            SetText(pauseButtonLabel, hudState == GameState.Paused ? "RESUME" : "PAUSE");
+            SetText(gameStateText, $"状态: {hudStateLabel}");
+            SetText(pauseButtonLabel, hudState == GameState.Paused ? "继续" : "暂停");
 
             if (defeatPanel != null)
             {
@@ -462,30 +471,6 @@ namespace Jiangshi.UI
             if (victoryPanel != null)
             {
                 victoryPanel.SetActive(hudState == GameState.Victory);
-            }
-
-            return;
-
-            var state = gameManager != null ? gameManager.State : GameState.Boot;
-            var stateLabel = state switch
-            {
-                GameState.Playing => "进行中",
-                GameState.Paused => "已暂停",
-                GameState.Defeat => "失败",
-                GameState.Victory => "胜利",
-                _ => "启动中"
-            };
-            SetText(gameStateText, $"状态: {stateLabel}");
-            SetText(pauseButtonLabel, state == GameState.Paused ? "继续" : "暂停");
-
-            if (defeatPanel != null)
-            {
-                defeatPanel.SetActive(state == GameState.Defeat);
-            }
-
-            if (victoryPanel != null)
-            {
-                victoryPanel.SetActive(state == GameState.Victory);
             }
         }
 
@@ -506,6 +491,14 @@ namespace Jiangshi.UI
 
                 var index = i;
                 button.onClick.AddListener(() => SelectBuildButton(index));
+                var trigger = button.GetComponent<EventTrigger>();
+                if (trigger == null)
+                {
+                    trigger = button.gameObject.AddComponent<EventTrigger>();
+                }
+
+                AddBuildTooltipHandler(trigger, EventTriggerType.PointerEnter, () => ShowBuildTooltip(index));
+                AddBuildTooltipHandler(trigger, EventTriggerType.PointerExit, () => HideBuildTooltip(index));
             }
         }
 
@@ -521,8 +514,20 @@ namespace Jiangshi.UI
                 if (button != null)
                 {
                     button.onClick.RemoveAllListeners();
+                    var trigger = button.GetComponent<EventTrigger>();
+                    if (trigger != null)
+                    {
+                        trigger.triggers.Clear();
+                    }
                 }
             }
+        }
+
+        private static void AddBuildTooltipHandler(EventTrigger trigger, EventTriggerType eventType, System.Action action)
+        {
+            var entry = new EventTrigger.Entry { eventID = eventType };
+            entry.callback.AddListener(_ => action());
+            trigger.triggers.Add(entry);
         }
 
         private void SelectBuildButton(int index)
@@ -564,10 +569,13 @@ namespace Jiangshi.UI
                     continue;
                 }
 
+                var canSelect = placementSystem == null || placementSystem.CanSelectBuilding(data);
                 var canAfford = CanAffordBuildData(data);
+                var canBuild = canSelect && canAfford;
                 var isSelected = placementSystem != null && placementSystem.SelectedBuilding == data;
-                button.interactable = canAfford;
-                SetBuildButtonVisual(button, label, canAfford, isSelected);
+                var icon = EnsureBuildButtonIcon(button, data);
+                button.interactable = canBuild;
+                SetBuildButtonVisual(button, label, icon, canBuild, isSelected);
                 SetText(label, FormatBuildButtonLabel(i, data));
             }
         }
@@ -587,9 +595,8 @@ namespace Jiangshi.UI
         private string FormatBuildButtonLabel(int index, BuildingData data)
         {
             var labelBuilder = new StringBuilder();
-            labelBuilder.Append('[');
             labelBuilder.Append(index == 9 ? 0 : index + 1);
-            labelBuilder.Append("] ");
+            labelBuilder.Append(". ");
             labelBuilder.Append(string.IsNullOrWhiteSpace(data.displayName) ? data.name : data.displayName);
 
             var costText = FormatBuildCosts(data);
@@ -600,37 +607,6 @@ namespace Jiangshi.UI
             }
 
             return labelBuilder.ToString();
-
-            var builder = new StringBuilder();
-            builder.Append(index + 1);
-            builder.Append(". ");
-            builder.Append(string.IsNullOrWhiteSpace(data.displayName) ? data.name : data.displayName);
-
-            if (data.buildCost != null && data.buildCost.Length > 0)
-            {
-                builder.Append('\n');
-                for (var i = 0; i < data.buildCost.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        builder.Append("  ");
-                    }
-
-                    builder.Append(FormatCost(data.buildCost[i]));
-                }
-
-                if (data.powerCost > 0)
-                {
-                    builder.Append($"  ⚡{data.powerCost}");
-                }
-
-                if (data.populationCost > 0)
-                {
-                    builder.Append($"  人{data.populationCost}");
-                }
-            }
-
-            return builder.ToString();
         }
 
         private string FormatBuildCosts(BuildingData data)
@@ -661,7 +637,7 @@ namespace Jiangshi.UI
                     costBuilder.Append("  ");
                 }
 
-                costBuilder.Append($"P{data.powerCost}");
+                costBuilder.Append($"电{data.powerCost}");
             }
 
             if (data.populationCost > 0)
@@ -671,7 +647,7 @@ namespace Jiangshi.UI
                     costBuilder.Append("  ");
                 }
 
-                costBuilder.Append($"POP{data.populationCost}");
+                costBuilder.Append($"人口{data.populationCost}");
             }
 
             return costBuilder.ToString();
@@ -681,37 +657,230 @@ namespace Jiangshi.UI
         {
             return cost.type switch
             {
-                ResourceType.Gold => $"G{cost.amount}",
-                ResourceType.Wood => $"W{cost.amount}",
-                ResourceType.Food => $"F{cost.amount}",
-                ResourceType.Power => $"P{cost.amount}",
-                ResourceType.Population => $"POP{cost.amount}",
-                ResourceType.Iron => $"FE{cost.amount}",
-                ResourceType.Copper => $"CU{cost.amount}",
-                _ => $"{cost.amount} {cost.type}"
-            };
-
-            return cost.type switch
-            {
-                ResourceType.Gold => $"{cost.amount}金",
-                ResourceType.Wood => $"{cost.amount}木",
-                ResourceType.Food => $"{cost.amount}食",
-                ResourceType.Power => $"{cost.amount}电",
-                ResourceType.Population => $"{cost.amount}人",
-                ResourceType.Iron => $"{cost.amount}铁",
-                ResourceType.Copper => $"{cost.amount}铜",
+                ResourceType.Gold => $"金{cost.amount}",
+                ResourceType.Wood => $"木{cost.amount}",
+                ResourceType.Food => $"食{cost.amount}",
+                ResourceType.Power => $"电{cost.amount}",
+                ResourceType.Population => $"人口{cost.amount}",
+                ResourceType.Iron => $"铁{cost.amount}",
+                ResourceType.Copper => $"铜{cost.amount}",
                 _ => $"{cost.amount} {cost.type}"
             };
         }
 
-        private void SetBuildButtonVisual(Button button, Text label, bool canAfford, bool isSelected)
+        private void ShowBuildTooltip(int index)
         {
-            SetButtonColor(button, !canAfford ? buildButtonDisabledColor : isSelected ? buildButtonSelectedColor : buildButtonNormalColor);
-            SetButtonOutline(button, !canAfford ? buildButtonDisabledOutlineColor : isSelected ? buildButtonSelectedOutlineColor : buildButtonNormalOutlineColor, isSelected ? 3f : 1f);
+            if (buildTooltipPanel == null || buildTooltipText == null || buildButtonData == null || index < 0 || index >= buildButtonData.Length)
+            {
+                return;
+            }
+
+            hoveredBuildIndex = index;
+            var data = buildButtonData[index];
+            buildTooltipText.text = FormatBuildTooltip(data);
+            buildTooltipPanel.SetActive(true);
+            UpdateBuildTooltipPosition();
+        }
+
+        private void HideBuildTooltip(int index)
+        {
+            if (hoveredBuildIndex != index)
+            {
+                return;
+            }
+
+            hoveredBuildIndex = -1;
+            if (buildTooltipPanel != null)
+            {
+                buildTooltipPanel.SetActive(false);
+            }
+        }
+
+        private void UpdateBuildTooltipPosition()
+        {
+            if (buildTooltipPanel == null || !buildTooltipPanel.activeSelf)
+            {
+                return;
+            }
+
+            var canvasRect = transform as RectTransform;
+            var tooltipRect = buildTooltipPanel.transform as RectTransform;
+            if (canvasRect == null || tooltipRect == null)
+            {
+                return;
+            }
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Input.mousePosition, null, out var localPoint))
+            {
+                return;
+            }
+
+            var x = Mathf.Clamp(localPoint.x + 180f, canvasRect.rect.xMin + 170f, canvasRect.rect.xMax - 170f);
+            var y = Mathf.Clamp(localPoint.y - 72f, canvasRect.rect.yMin + 80f, canvasRect.rect.yMax - 80f);
+            tooltipRect.anchoredPosition = new Vector2(x, y);
+        }
+
+        private string FormatBuildTooltip(BuildingData data)
+        {
+            if (data == null)
+            {
+                return "无建筑信息";
+            }
+
+            var builder = new StringBuilder();
+            builder.AppendLine(string.IsNullOrWhiteSpace(data.displayName) ? data.name : data.displayName);
+
+            var cost = FormatBuildCosts(data);
+            builder.Append("消耗: ");
+            builder.AppendLine(string.IsNullOrEmpty(cost) ? "无" : cost);
+
+            builder.Append("产出: ");
+            builder.AppendLine(FormatProduction(data));
+
+            if (data.trainableUnits != null && data.trainableUnits.Length > 0)
+            {
+                builder.Append("训练: ");
+                for (var i = 0; i < data.trainableUnits.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append("、");
+                    }
+
+                    var unit = data.trainableUnits[i];
+                    builder.Append(unit != null && !string.IsNullOrWhiteSpace(unit.displayName) ? unit.displayName : "未知单位");
+                }
+            }
+
+            return builder.ToString().TrimEnd();
+        }
+
+        private string FormatProduction(BuildingData data)
+        {
+            var builder = new StringBuilder();
+            AppendProduction(builder, data.produceType, data.produceAmount, data.produceInterval);
+
+            if (data.extraProduction != null)
+            {
+                foreach (var production in data.extraProduction)
+                {
+                    AppendProduction(builder, production.type, production.amount, data.produceInterval);
+                }
+            }
+
+            if (builder.Length == 0 && data.scaleWithContent != Jiangshi.Grid.CellContent.None)
+            {
+                builder.Append($"{ResourceName(data.produceType)} 随周围资源变化");
+            }
+
+            return builder.Length > 0 ? builder.ToString() : "无固定产出";
+        }
+
+        private static void AppendProduction(StringBuilder builder, ResourceType type, int amount, float interval)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append("，");
+            }
+
+            var tick = interval > 0f ? interval : 5f;
+            builder.Append($"每{tick:0.#}秒 +{amount}{ResourceName(type)}");
+        }
+
+        private static string ResourceName(ResourceType type)
+        {
+            return type switch
+            {
+                ResourceType.Gold => "金币",
+                ResourceType.Wood => "木材",
+                ResourceType.Food => "食物",
+                ResourceType.Power => "电力",
+                ResourceType.Population => "人口",
+                ResourceType.Iron => "铁",
+                ResourceType.Copper => "铜",
+                _ => type.ToString()
+            };
+        }
+
+        private Image EnsureBuildButtonIcon(Button button, BuildingData data)
+        {
+            if (button == null)
+            {
+                return null;
+            }
+
+            var iconTransform = button.transform.Find("Icon");
+            Image icon;
+            if (iconTransform == null)
+            {
+                var iconObject = new GameObject("Icon");
+                iconObject.transform.SetParent(button.transform, false);
+                iconObject.transform.SetAsFirstSibling();
+                icon = iconObject.AddComponent<Image>();
+                icon.preserveAspect = true;
+            }
+            else
+            {
+                icon = iconTransform.GetComponent<Image>();
+                if (icon == null)
+                {
+                    icon = iconTransform.gameObject.AddComponent<Image>();
+                }
+            }
+
+            var iconRect = icon.GetComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0f, 0.5f);
+            iconRect.anchorMax = new Vector2(0f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.anchoredPosition = new Vector2(25f, 0f);
+            iconRect.sizeDelta = new Vector2(34f, 34f);
+
+            icon.sprite = GetBuildingIcon(data);
+            icon.enabled = icon.sprite != null;
+
+            return icon;
+        }
+
+        private static Sprite GetBuildingIcon(BuildingData data)
+        {
+            if (data == null || data.prefab == null)
+            {
+                return null;
+            }
+
+            var spriteRenderer = data.prefab.GetComponentInChildren<SpriteRenderer>(true);
+            return spriteRenderer != null ? spriteRenderer.sprite : null;
+        }
+
+        private void SetBuildButtonVisual(Button button, Text label, Image icon, bool canBuild, bool isSelected)
+        {
+            SetButtonColor(button, !canBuild ? buildButtonDisabledColor : isSelected ? buildButtonSelectedColor : buildButtonNormalColor);
+            SetButtonOutline(button, !canBuild ? buildButtonDisabledOutlineColor : isSelected ? buildButtonSelectedOutlineColor : buildButtonNormalOutlineColor, isSelected ? 3f : 1f);
+
+            if (icon != null)
+            {
+                icon.color = canBuild ? Color.white : new Color(0.45f, 0.48f, 0.48f, 0.72f);
+            }
 
             if (label != null)
             {
-                label.color = canAfford ? buildButtonTextColor : buildButtonDisabledTextColor;
+                label.alignment = TextAnchor.MiddleLeft;
+                var labelRect = label.GetComponent<RectTransform>();
+                if (labelRect != null)
+                {
+                    labelRect.anchorMin = Vector2.zero;
+                    labelRect.anchorMax = Vector2.one;
+                    labelRect.pivot = new Vector2(0.5f, 0.5f);
+                    labelRect.offsetMin = new Vector2(52f, 2f);
+                    labelRect.offsetMax = new Vector2(-8f, -2f);
+                }
+
+                label.color = canBuild ? buildButtonTextColor : buildButtonDisabledTextColor;
             }
         }
 
@@ -757,6 +926,20 @@ namespace Jiangshi.UI
             }
         }
 
+        private void EnsureBuildTooltipUi()
+        {
+            if (buildTooltipPanel != null)
+            {
+                return;
+            }
+
+            buildTooltipPanel = CreateRuntimePanel(transform, "Building Info Tooltip", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(340f, 128f), new Color(0.035f, 0.047f, 0.052f, 0.96f));
+            var canvasGroup = buildTooltipPanel.AddComponent<CanvasGroup>();
+            canvasGroup.blocksRaycasts = false;
+            buildTooltipText = CreateRuntimeText(buildTooltipPanel.transform, "Tooltip Text", "", 16, Vector2.zero, new Vector2(312f, 104f), TextAnchor.UpperLeft);
+            buildTooltipPanel.SetActive(false);
+        }
+
         private void EnsureDemolitionUi()
         {
             if (demolitionPanel != null)
@@ -769,8 +952,8 @@ namespace Jiangshi.UI
             demolitionRefundText = CreateRuntimeText(demolitionPanel.transform, "Demolition Refund", "", 16, new Vector2(0f, 10f), new Vector2(320f, 28f), TextAnchor.MiddleCenter);
             demolitionButton = CreateRuntimeButton(demolitionPanel.transform, "Demolition Button", "拆除", new Vector2(0.5f, 0.5f), new Vector2(0f, -38f), new Vector2(132f, 38f));
             demolitionButtonLabel = demolitionButton.GetComponentInChildren<Text>();
-            demolitionTitleText.text = "NO BUILDING SELECTED";
-            demolitionButtonLabel.text = "DEMOLISH";
+            demolitionTitleText.text = "未选择建筑";
+            demolitionButtonLabel.text = "拆除";
             demolitionButton.onClick.AddListener(DemolishSelectedBuilding);
             demolitionPanel.SetActive(false);
         }
@@ -795,24 +978,6 @@ namespace Jiangshi.UI
 
             if (!selectedDemolitionBuilding.CanDemolish())
             {
-                SetText(demolitionRefundText, "Core building cannot be demolished");
-                SetText(demolitionButtonLabel, "LOCKED");
-                demolitionButton.interactable = false;
-                return;
-            }
-
-            SetText(demolitionRefundText, $"Refund: {FormatRefund(data)}");
-            SetText(demolitionButtonLabel, "DEMOLISH");
-            demolitionButton.interactable = true;
-            return;
-
-            if (!selectedDemolitionBuilding.CanDemolish())
-            {
-                SetText(demolitionRefundText, "Core building cannot be demolished");
-                SetText(demolitionButtonLabel, "LOCKED");
-                demolitionButton.interactable = false;
-                return;
-
                 SetText(demolitionRefundText, "核心建筑不能拆除");
                 SetText(demolitionButtonLabel, "不可拆除");
                 demolitionButton.interactable = false;
@@ -862,30 +1027,48 @@ namespace Jiangshi.UI
             settingsButton = CreateRuntimeButton(root, "Settings Button", "设置", new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(104f, 38f));
             settingsButton.onClick.AddListener(ToggleSettings);
             SetupRuntimeRect(settingsButton.gameObject, new Vector2(1f, 1f), new Vector2(-76f, -24f), new Vector2(116f, 38f));
-            settingsButton.GetComponentInChildren<Text>().text = "MENU";
+            settingsButton.GetComponentInChildren<Text>().text = "菜单";
 
-            settingsPanel = CreateRuntimePanel(root, "Settings Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(360f, 210f), new Color(0.035f, 0.045f, 0.052f, 0.94f));
-            CreateRuntimeText(settingsPanel.transform, "Settings Title", "设置", 30, new Vector2(0f, 62f), new Vector2(300f, 44f), TextAnchor.MiddleCenter);
-            CreateRuntimeText(settingsPanel.transform, "Settings Message", "游戏已暂停", 20, new Vector2(0f, 20f), new Vector2(300f, 32f), TextAnchor.MiddleCenter);
+            settingsPanel = CreateRuntimePanel(root, "Settings Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 260f), new Color(0.035f, 0.045f, 0.052f, 0.94f));
+            CreateRuntimeText(settingsPanel.transform, "Settings Title", "设置", 30, new Vector2(0f, 86f), new Vector2(340f, 44f), TextAnchor.MiddleCenter);
+            CreateRuntimeText(settingsPanel.transform, "Settings Message", "游戏已暂停", 20, new Vector2(0f, 48f), new Vector2(340f, 32f), TextAnchor.MiddleCenter);
 
-            settingsCloseButton = CreateRuntimeButton(settingsPanel.transform, "Settings Close Button", "继续游戏", new Vector2(0.5f, 0.5f), new Vector2(-82f, -52f), new Vector2(132f, 44f));
-            settingsQuitButton = CreateRuntimeButton(settingsPanel.transform, "Settings Quit Button", "退出游戏", new Vector2(0.5f, 0.5f), new Vector2(82f, -52f), new Vector2(132f, 44f));
+            settingsGuideButton = CreateRuntimeButton(settingsPanel.transform, "Settings Guide Button", "游戏指南", new Vector2(0.5f, 0.5f), new Vector2(0f, 0f), new Vector2(180f, 42f));
+            settingsCloseButton = CreateRuntimeButton(settingsPanel.transform, "Settings Close Button", "继续游戏", new Vector2(0.5f, 0.5f), new Vector2(-96f, -70f), new Vector2(150f, 44f));
+            settingsQuitButton = CreateRuntimeButton(settingsPanel.transform, "Settings Quit Button", "退出游戏", new Vector2(0.5f, 0.5f), new Vector2(96f, -70f), new Vector2(150f, 44f));
             settingsCloseButton.onClick.AddListener(CloseSettings);
+            settingsGuideButton.onClick.AddListener(OpenGuide);
             settingsQuitButton.onClick.AddListener(QuitGame);
             var settingsTexts = settingsPanel.GetComponentsInChildren<Text>();
             if (settingsTexts.Length > 0)
             {
-                settingsTexts[0].text = "SETTINGS";
+                settingsTexts[0].text = "设置";
             }
 
             if (settingsTexts.Length > 1)
             {
-                settingsTexts[1].text = "Game paused";
+                settingsTexts[1].text = "游戏已暂停";
             }
 
-            settingsCloseButton.GetComponentInChildren<Text>().text = "RESUME";
-            settingsQuitButton.GetComponentInChildren<Text>().text = "QUIT";
+            settingsCloseButton.GetComponentInChildren<Text>().text = "继续";
+            settingsGuideButton.GetComponentInChildren<Text>().text = "游戏指南";
+            settingsQuitButton.GetComponentInChildren<Text>().text = "退出";
             settingsPanel.SetActive(false);
+
+            guidePanel = CreateRuntimePanel(root, "Game Guide Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 430f), new Color(0.032f, 0.042f, 0.048f, 0.97f));
+            CreateRuntimeText(guidePanel.transform, "Guide Title", "游戏指南", 30, new Vector2(0f, 176f), new Vector2(540f, 42f), TextAnchor.MiddleCenter);
+            CreateRuntimeText(
+                guidePanel.transform,
+                "Guide Body",
+                "目标\n守住指挥基地直到倒计时结束。\n\n建造\n数字键 1-9/0 或右侧按钮选择建筑，左键放置，右键或 Esc 取消。城墙可按 Tab 旋转，绿色预览表示可放置，红色表示不可放置。\n\n资源\n木屋、伐木场、农场、电厂和矿场提供资源。注意电力、人口和建造材料，资源不足时按钮会变暗。\n\n战斗\n兵工厂训练士兵和剑客。士兵远程开枪，剑客近战拦截。箭塔会自动攻击进入范围的僵尸。\n\n操作\nP 暂停或继续；点击建筑可查看拆除返还，核心建筑不能拆除。",
+                18,
+                new Vector2(0f, 4f),
+                new Vector2(540f, 300f),
+                TextAnchor.UpperLeft);
+            guideCloseButton = CreateRuntimeButton(guidePanel.transform, "Guide Close Button", "关闭", new Vector2(0.5f, 0.5f), new Vector2(0f, -176f), new Vector2(150f, 42f));
+            guideCloseButton.onClick.AddListener(CloseGuide);
+            guideCloseButton.GetComponentInChildren<Text>().text = "关闭";
+            guidePanel.SetActive(false);
         }
 
         private static GameObject CreateRuntimePanel(Transform parent, string name, Vector2 anchor, Vector2 anchoredPosition, Vector2 size, Color color)
@@ -942,6 +1125,8 @@ namespace Jiangshi.UI
             text.fontSize = fontSize;
             text.alignment = alignment;
             text.color = new Color(0.94f, 0.96f, 0.93f, 1f);
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
             return text;
         }
 

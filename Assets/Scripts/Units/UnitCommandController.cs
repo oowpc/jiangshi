@@ -52,7 +52,27 @@ namespace Jiangshi.Units
 
         private void TryCommand()
         {
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
             var ray = worldCamera.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out var targetHit, 500f))
+            {
+                var damageable = targetHit.collider.GetComponentInParent<Damageable>();
+                var factionMember = damageable != null ? damageable.GetComponentInParent<FactionMember>() : null;
+                if (damageable != null && !damageable.IsDead && factionMember != null && factionMember.Faction == Faction.Enemy)
+                {
+                    if (selectedUnit is IAttackCommandable attacker)
+                    {
+                        attacker.AttackTarget(damageable);
+                        return;
+                    }
+                }
+            }
+
             if (Physics.Raycast(ray, out var hit, 500f, groundMask))
             {
                 var pos = hit.point;

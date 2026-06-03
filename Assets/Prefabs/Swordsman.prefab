@@ -17,8 +17,9 @@ GameObject:
   - component: {fileID: 4989571264867276575}
   - component: {fileID: 3607057175156177304}
   - component: {fileID: 8691867581660862048}
+  - component: {fileID: 2364686395883566933}
   m_Layer: 0
-  m_Name: Archer
+  m_Name: Swordsman
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -80,7 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 17107e56cd75e42478a6407d3125fa18, type: 3}
+  m_Sprite: {fileID: -3044121777325407044, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -174,7 +175,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8448124027259173776}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7da27d380c1b05a47b75f6c91220fe77, type: 3}
+  m_Script: {fileID: 11500000, guid: f5313460938d4be8a2f63d5f7542b61f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   data: {fileID: 0}
@@ -191,3 +192,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 458d36404eb1e26498a7f63fed96617e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2364686395883566933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8448124027259173776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6b3d4a967c84bb4a9f22224dc9cbfa2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  idleFrames:
+  - {fileID: -3044121777325407044, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  - {fileID: 1193714817240446056, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  - {fileID: -1970459947575270202, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  - {fileID: -7569950403637501193, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  - {fileID: 2192422439702610127, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  - {fileID: 8476252043471888531, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  - {fileID: -3480795861618397192, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  - {fileID: -1409514166356799065, guid: 93f11f2f110552d44abcf65298312f58, type: 3}
+  walkFrames:
+  - {fileID: 2036728316775438930, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  - {fileID: -6944485814404519869, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  - {fileID: 3066329933064352070, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  - {fileID: 1972857897663530509, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  - {fileID: 92006461168879824, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  - {fileID: 8750875836652620319, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  - {fileID: -1174830301977405162, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  - {fileID: 652482182288994539, guid: 576a598ddb7c14745bdedb92bbc9c84a, type: 3}
+  attackFrames:
+  - {fileID: 3459086216989573240, guid: 9989a0979724a5b418cd28d6beca4524, type: 3}
+  - {fileID: 6406766767002036285, guid: 9989a0979724a5b418cd28d6beca4524, type: 3}
+  - {fileID: 267711590860992910, guid: 9989a0979724a5b418cd28d6beca4524, type: 3}
+  - {fileID: 8623692794857509734, guid: 9989a0979724a5b418cd28d6beca4524, type: 3}
+  - {fileID: -4521683499740096573, guid: 9989a0979724a5b418cd28d6beca4524, type: 3}
+  - {fileID: -8749908043360074783, guid: 9989a0979724a5b418cd28d6beca4524, type: 3}
+  - {fileID: 7198330264358744634, guid: 9989a0979724a5b418cd28d6beca4524, type: 3}
+  reloadFrames:
+  - {fileID: 837285025074708908, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  - {fileID: 5560939853378395252, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  - {fileID: 4909924938961972713, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  - {fileID: -2991207740120979534, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  - {fileID: 8495234676197841756, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  - {fileID: -1050725293247345041, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  - {fileID: -340119096164907248, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  - {fileID: -6768230179260577756, guid: 75e8f7a33d825a94c91524b83a24ac85, type: 3}
+  deathFrames:
+  - {fileID: 119175067972064246, guid: 59c19fd49d22c6c428632464b9765e32, type: 3}
+  - {fileID: 8439005003042338543, guid: 59c19fd49d22c6c428632464b9765e32, type: 3}
+  - {fileID: -873525825400860391, guid: 59c19fd49d22c6c428632464b9765e32, type: 3}
+  - {fileID: -4080287363597172709, guid: 59c19fd49d22c6c428632464b9765e32, type: 3}
+  - {fileID: -4005562191071809265, guid: 59c19fd49d22c6c428632464b9765e32, type: 3}
+  - {fileID: 1818658589646095471, guid: 59c19fd49d22c6c428632464b9765e32, type: 3}
+  - {fileID: -2516011792032602847, guid: 59c19fd49d22c6c428632464b9765e32, type: 3}
+  idleFps: 6
+  walkFps: 8
+  attackFps: 10
+  reloadFps: 8
+  deathFps: 8

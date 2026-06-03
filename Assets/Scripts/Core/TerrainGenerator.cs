@@ -14,6 +14,7 @@ namespace Jiangshi.Core
         [SerializeField] private float terrainScale = 0.04f;
         [SerializeField] private float vegetationScale = 0.08f;
         [SerializeField] private int terrainSortingOrder = -5;
+        [SerializeField] private float tileOverlap = 0.005f;
         [SerializeField] private int seed;
 
         [Header("Tilesets (3x3 = 9 sprites, order: TL,T,TR,L,C,R,BL,B,BR)")]
@@ -117,6 +118,8 @@ namespace Jiangshi.Core
 
             var unityGrid = gridObject.AddComponent<UnityGrid>();
             unityGrid.cellSize = new Vector3(gridManager.CellSize, gridManager.CellSize, 1f);
+            var overlap = Mathf.Clamp(tileOverlap, 0f, gridManager.CellSize * 0.1f);
+            unityGrid.cellGap = new Vector3(-overlap, -overlap, 0f);
 
             var tilemapObject = new GameObject("Ground");
             tilemapObject.transform.SetParent(gridObject.transform, false);

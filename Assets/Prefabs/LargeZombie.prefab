@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 581945539233331149}
   - component: {fileID: 5443200614850427481}
   - component: {fileID: 2502717699501335993}
-  - component: {fileID: 9182442951237820937}
+  - component: {fileID: 1956825813695582318}
   m_Layer: 0
   m_Name: LargeZombie
   m_TagString: Untagged
@@ -203,7 +203,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 458d36404eb1e26498a7f63fed96617e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &9182442951237820937
+--- !u!114 &1956825813695582318
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

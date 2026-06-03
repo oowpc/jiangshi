@@ -192,7 +192,7 @@ namespace Jiangshi.Editor
             data.maxHealth = 75;
             data.moveSpeed = 3.4f;
             data.attackDamage = 16;
-            data.attackRange = 1.8f;
+            data.attackRange = 1.35f;
             data.attackInterval = 0.9f;
             data.trainingCost = new[]
             {

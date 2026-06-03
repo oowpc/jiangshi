@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 8270587049980699106}
   - component: {fileID: 2319547545259385863}
   - component: {fileID: 4099844184498905311}
-  - component: {fileID: 5798598527582737162}
+  - component: {fileID: 6123878958893308441}
   m_Layer: 0
   m_Name: FastZombie
   m_TagString: Untagged
@@ -203,7 +203,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 458d36404eb1e26498a7f63fed96617e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5798598527582737162
+--- !u!114 &6123878958893308441
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -66,7 +66,8 @@ namespace Jiangshi.Units
         {
             if (unitManager == null) return;
             var pos = transform.position + Vector3.right * 1.5f;
-            unitManager.Spawn(data, pos, Quaternion.identity);
+            var rotation = data.prefab != null ? data.prefab.transform.rotation : Quaternion.identity;
+            unitManager.Spawn(data, pos, rotation);
         }
     }
 }
