@@ -11,14 +11,17 @@ namespace Jiangshi.Combat
         [SerializeField] private Faction targetFaction = Faction.Enemy;
         [SerializeField] private LayerMask targetMask = -1;
         [SerializeField] private Projectile projectilePrefab;
+        [SerializeField] private int maxOverlapHits = 64;
 
         private float nextAttackTime;
         private Damageable self;
         private ComponentPool<Projectile> projectilePool;
+        private Collider[] overlapHits;
 
         private void Awake()
         {
             self = GetComponentInParent<Damageable>();
+            overlapHits = new Collider[Mathf.Max(1, maxOverlapHits)];
             if (projectilePrefab != null)
                 projectilePool = new ComponentPool<Projectile>(projectilePrefab);
         }
@@ -51,12 +54,13 @@ namespace Jiangshi.Combat
 
         private Damageable FindTarget()
         {
-            var hits = Physics.OverlapSphere(transform.position, range, targetMask);
+            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, range, overlapHits, targetMask);
             Damageable closest = null;
             var closestDistance = float.MaxValue;
 
-            foreach (var hit in hits)
+            for (var i = 0; i < hitCount; i++)
             {
+                var hit = overlapHits[i];
                 var damageable = hit.GetComponentInParent<Damageable>();
                 if (damageable == null || damageable == self || damageable.IsDead)
                 {

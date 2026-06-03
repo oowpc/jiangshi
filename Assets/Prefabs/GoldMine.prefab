@@ -203,8 +203,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 644359a7bcd9f3642abb58831d3b4920, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resourceType: 4
-  amountPerTick: 4
+  resourceType: 0
+  amountPerTick: 5
   interval: 5
   scaleWithNearbyCells: 0
   scanContent: 0

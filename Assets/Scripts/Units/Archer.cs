@@ -3,10 +3,18 @@ using Jiangshi.Combat;
 
 namespace Jiangshi.Units
 {
-    public sealed class Archer : Unit
+    public sealed class Archer : Unit, IMovableUnit
     {
+        [SerializeField] private int maxOverlapHits = 64;
+
         private Vector3? moveTarget;
         private float nextAttackTime;
+        private Collider[] overlapHits;
+
+        private void Awake()
+        {
+            overlapHits = new Collider[Mathf.Max(1, maxOverlapHits)];
+        }
 
         public void MoveTo(Vector3 position)
         {
@@ -36,9 +44,10 @@ namespace Jiangshi.Units
         {
             if (Time.time < nextAttackTime) return false;
 
-            var hits = Physics.OverlapSphere(transform.position, Data.attackRange);
-            foreach (var hit in hits)
+            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, Data.attackRange, overlapHits);
+            for (var i = 0; i < hitCount; i++)
             {
+                var hit = overlapHits[i];
                 var fm = hit.GetComponentInParent<FactionMember>();
                 if (fm == null || fm.Faction != Faction.Enemy) continue;
 

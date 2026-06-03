@@ -12,6 +12,7 @@ namespace Jiangshi.Units
         [SerializeField] private float attackRange = 1.2f;
         [SerializeField] private float attackInterval = 1.1f;
         [SerializeField] private LayerMask attackMask = -1;
+        [SerializeField] private int maxOverlapHits = 64;
 
         [Header("Idle Wander")]
         [SerializeField] private float detectRange = 5f;
@@ -24,10 +25,12 @@ namespace Jiangshi.Units
         private Vector3 wanderTarget;
         private Vector3 spawnPosition;
         private float wanderTimer;
+        private Collider[] overlapHits;
 
         private void Start()
         {
-            flowField = FindObjectOfType<FlowField>();
+            flowField = FlowField.Instance;
+            overlapHits = new Collider[Mathf.Max(1, maxOverlapHits)];
             spawnPosition = transform.position;
             PickWanderTarget();
         }
@@ -58,23 +61,20 @@ namespace Jiangshi.Units
 
         private Vector3 GetMovementDirection()
         {
+            if (flowField == null)
+            {
+                flowField = FlowField.Instance;
+            }
+
             if (flowField != null)
             {
-                var flowDirection = flowField.GetDirection(transform.position);
-                if (flowDirection.sqrMagnitude > 0.01f)
+                if (flowField.TryGetDirection(transform.position, out var flowDirection))
                 {
                     return flowDirection.normalized;
                 }
             }
 
-            if (target == null)
-            {
-                return Vector3.zero;
-            }
-
-            var directDirection = target.position - transform.position;
-            directDirection.y = 0f;
-            return directDirection.sqrMagnitude > 0.01f ? directDirection.normalized : Vector3.zero;
+            return Vector3.zero;
         }
 
         private void Wander()
@@ -102,9 +102,10 @@ namespace Jiangshi.Units
 
         private bool DetectPlayerNearby()
         {
-            var hits = Physics.OverlapSphere(transform.position, detectRange, attackMask, QueryTriggerInteraction.Ignore);
-            foreach (var hit in hits)
+            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, detectRange, overlapHits, attackMask, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < hitCount; i++)
             {
+                var hit = overlapHits[i];
                 var fm = hit.GetComponentInParent<FactionMember>();
                 if (fm != null && fm.Faction == Faction.Player)
                     return true;
@@ -138,12 +139,13 @@ namespace Jiangshi.Units
 
         private Damageable FindAttackTarget()
         {
-            var hits = Physics.OverlapSphere(transform.position, GetAttackRange(), attackMask, QueryTriggerInteraction.Ignore);
+            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, GetAttackRange(), overlapHits, attackMask, QueryTriggerInteraction.Ignore);
             Damageable closest = null;
             var closestDistance = float.MaxValue;
 
-            foreach (var hit in hits)
+            for (var i = 0; i < hitCount; i++)
             {
+                var hit = overlapHits[i];
                 var damageable = hit.GetComponentInParent<Damageable>();
                 if (damageable == null || damageable.IsDead) continue;
 

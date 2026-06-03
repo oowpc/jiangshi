@@ -33,7 +33,11 @@ namespace Jiangshi.Core
         [Header("Initial Zombies")]
         [SerializeField] private Units.UnitData zombieData;
         [SerializeField] private Units.UnitManager unitManager;
-        [SerializeField] private int initialZombieCount = 20;
+        [SerializeField] private int initialZombieCount = 64;
+        [SerializeField] private int initialZombieEdgeBand = 14;
+        [SerializeField] private int initialZombieBoundaryMargin = 3;
+        [SerializeField] private float initialZombiePositionJitter = 0.35f;
+        [SerializeField] private int initialZombieSpawnAttempts = 80;
         [SerializeField] private Transform defaultTarget;
 
         private void Start()
@@ -261,22 +265,60 @@ namespace Jiangshi.Core
 
             for (var i = 0; i < initialZombieCount; i++)
             {
-                for (var attempt = 0; attempt < 30; attempt++)
+                for (var attempt = 0; attempt < initialZombieSpawnAttempts; attempt++)
                 {
-                    var x = Random.Range(0, gridManager.Width);
-                    var y = Random.Range(0, gridManager.Height);
-                    if (Mathf.Abs(x - center.x) < clearRadius && Mathf.Abs(y - center.y) < clearRadius)
+                    var gridPosition = PickPerimeterZombiePosition();
+                    if (Mathf.Abs(gridPosition.X - center.x) < clearRadius && Mathf.Abs(gridPosition.Y - center.y) < clearRadius)
                         continue;
-                    var cell = gridManager.GetCell(new GridPosition(x, y));
+
+                    var cell = gridManager.GetCell(gridPosition);
                     if (cell == null || !cell.IsWalkable) continue;
 
-                    var pos = gridManager.GridToWorld(new GridPosition(x, y));
+                    var pos = gridManager.GridToWorld(gridPosition);
+                    pos = ApplyInitialZombieJitter(pos);
                     var unit = unitManager.Spawn(zombieData, pos, Quaternion.identity);
                     if (unit is Units.Zombie zombie && defaultTarget != null)
                         zombie.SetTarget(defaultTarget);
                     break;
                 }
             }
+        }
+
+        private GridPosition PickPerimeterZombiePosition()
+        {
+            var marginX = Mathf.Clamp(initialZombieBoundaryMargin, 0, Mathf.Max(0, (gridManager.Width - 1) / 2));
+            var marginY = Mathf.Clamp(initialZombieBoundaryMargin, 0, Mathf.Max(0, (gridManager.Height - 1) / 2));
+            var minX = marginX;
+            var minY = marginY;
+            var maxX = Mathf.Max(minX, gridManager.Width - 1 - marginX);
+            var maxY = Mathf.Max(minY, gridManager.Height - 1 - marginY);
+            var bandX = Mathf.Clamp(initialZombieEdgeBand, 1, Mathf.Max(1, gridManager.Width / 2));
+            var bandY = Mathf.Clamp(initialZombieEdgeBand, 1, Mathf.Max(1, gridManager.Height / 2));
+
+            if (Random.value < 0.5f)
+            {
+                var y = Random.value < 0.5f
+                    ? Random.Range(minY, Mathf.Min(maxY + 1, bandY))
+                    : Random.Range(Mathf.Max(minY, gridManager.Height - bandY), maxY + 1);
+                return new GridPosition(Random.Range(minX, maxX + 1), Mathf.Clamp(y, minY, maxY));
+            }
+
+            var x = Random.value < 0.5f
+                ? Random.Range(minX, Mathf.Min(maxX + 1, bandX))
+                : Random.Range(Mathf.Max(minX, gridManager.Width - bandX), maxX + 1);
+            return new GridPosition(Mathf.Clamp(x, minX, maxX), Random.Range(minY, maxY + 1));
+        }
+
+        private Vector3 ApplyInitialZombieJitter(Vector3 position)
+        {
+            if (initialZombiePositionJitter <= 0f)
+            {
+                return position;
+            }
+
+            position.x += Random.Range(-initialZombiePositionJitter, initialZombiePositionJitter);
+            position.z += Random.Range(-initialZombiePositionJitter, initialZombiePositionJitter);
+            return position;
         }
     }
 }

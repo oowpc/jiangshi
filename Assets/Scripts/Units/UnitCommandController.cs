@@ -1,4 +1,5 @@
 using Jiangshi.Building;
+using Jiangshi.Combat;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -37,9 +38,11 @@ namespace Jiangshi.Units
             var ray = worldCamera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit, 500f))
             {
-                var unit = hit.collider.GetComponentInParent<Soldier>() as Unit
-                    ?? hit.collider.GetComponentInParent<Archer>() as Unit;
-                selectedUnit = unit;
+                var unit = hit.collider.GetComponentInParent<Unit>();
+                var factionMember = unit != null ? unit.GetComponentInParent<FactionMember>() : null;
+                selectedUnit = factionMember != null && factionMember.Faction == Faction.Player
+                    ? unit
+                    : null;
             }
             else
             {
@@ -54,10 +57,10 @@ namespace Jiangshi.Units
             {
                 var pos = hit.point;
                 pos.y = 0f;
-                if (selectedUnit is Soldier soldier)
-                    soldier.MoveTo(pos);
-                else if (selectedUnit is Archer archer)
-                    archer.MoveTo(pos);
+                if (selectedUnit is IMovableUnit movable)
+                {
+                    movable.MoveTo(pos);
+                }
             }
         }
 

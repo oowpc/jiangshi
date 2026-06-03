@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using Jiangshi.Grid;
+using UnityGrid = UnityEngine.Grid;
 
 namespace Jiangshi.Core
 {
@@ -10,7 +13,7 @@ namespace Jiangshi.Core
         [SerializeField] private GridManager gridManager;
         [SerializeField] private float terrainScale = 0.04f;
         [SerializeField] private float vegetationScale = 0.08f;
-        [SerializeField] private float tileOverlap = 0.01f;
+        [SerializeField] private int terrainSortingOrder = -5;
         [SerializeField] private int seed;
 
         [Header("Tilesets (3x3 = 9 sprites, order: TL,T,TR,L,C,R,BL,B,BR)")]
@@ -20,6 +23,8 @@ namespace Jiangshi.Core
         [SerializeField] private Sprite[] waterTileset;
 
         private TerrainType[,] terrainMap;
+        private readonly Dictionary<Sprite, Tile> tileCache = new();
+        private const string TerrainObjectName = "Terrain";
 
         public TerrainType GetTerrain(int x, int y)
         {
@@ -82,7 +87,7 @@ namespace Jiangshi.Core
                 }
             }
 
-            var parent = new GameObject("Terrain").transform;
+            var tilemap = CreateTerrainTilemap();
 
             for (var x = 0; x < w; x++)
             {
@@ -92,16 +97,62 @@ namespace Jiangshi.Core
                     var sprite = GetAutoTileSprite(x, y, type);
                     if (sprite == null) continue;
 
-                    var go = new GameObject($"T_{x}_{y}");
-                    go.transform.SetParent(parent);
-                    go.transform.position = gridManager.GridToWorld(new GridPosition(x, y));
-                    go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-                    var overlapScale = 1f + Mathf.Max(0f, tileOverlap);
-                    go.transform.localScale = new Vector3(overlapScale, overlapScale, 1f);
-                    var sr = go.AddComponent<SpriteRenderer>();
-                    sr.sprite = sprite;
-                    sr.sortingOrder = -5;
+                    tilemap.SetTile(new Vector3Int(x, y, 0), GetTile(sprite));
                 }
+            }
+        }
+
+        private Tilemap CreateTerrainTilemap()
+        {
+            var existing = GameObject.Find(TerrainObjectName);
+            if (existing != null)
+            {
+                DestroyGeneratedObject(existing);
+            }
+
+            var gridObject = new GameObject(TerrainObjectName);
+            gridObject.transform.position = gridManager.GridToWorld(new GridPosition(0, 0)) -
+                new Vector3(gridManager.CellSize * 0.5f, 0f, gridManager.CellSize * 0.5f);
+            gridObject.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            var unityGrid = gridObject.AddComponent<UnityGrid>();
+            unityGrid.cellSize = new Vector3(gridManager.CellSize, gridManager.CellSize, 1f);
+
+            var tilemapObject = new GameObject("Ground");
+            tilemapObject.transform.SetParent(gridObject.transform, false);
+
+            var tilemap = tilemapObject.AddComponent<Tilemap>();
+            tilemap.tileAnchor = new Vector3(0.5f, 0.5f, 0f);
+
+            var renderer = tilemapObject.AddComponent<TilemapRenderer>();
+            renderer.sortOrder = TilemapRenderer.SortOrder.BottomLeft;
+            renderer.sortingOrder = terrainSortingOrder;
+
+            return tilemap;
+        }
+
+        private Tile GetTile(Sprite sprite)
+        {
+            if (tileCache.TryGetValue(sprite, out var tile))
+            {
+                return tile;
+            }
+
+            tile = ScriptableObject.CreateInstance<Tile>();
+            tile.sprite = sprite;
+            tileCache[sprite] = tile;
+            return tile;
+        }
+
+        private static void DestroyGeneratedObject(GameObject target)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(target);
+            }
+            else
+            {
+                DestroyImmediate(target);
             }
         }
 

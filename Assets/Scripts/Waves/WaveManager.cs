@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Jiangshi.Grid;
 using Jiangshi.Units;
 using UnityEngine;
 
@@ -11,6 +12,8 @@ namespace Jiangshi.Waves
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private Transform defaultTarget;
         [SerializeField] private UnitManager unitManager;
+        [SerializeField] private GridManager gridManager;
+        [SerializeField] private int spawnSearchRadius = 8;
 
         private float scheduleStartTime;
         private int activeWaveCount;
@@ -54,10 +57,25 @@ namespace Jiangshi.Waves
             activeWaveText = string.IsNullOrWhiteSpace(wave.warningText) ? "波次进行中" : wave.warningText;
             RefreshStatusText();
 
-            for (var i = 0; i < wave.count; i++)
+            if (wave.enemyGroups != null && wave.enemyGroups.Length > 0)
             {
-                SpawnEnemy(wave);
-                yield return new WaitForSeconds(wave.spawnInterval);
+                var groupIndex = 0;
+                var spawnDirections = Mathf.Max(1, wave.spawnDirections);
+                for (var i = 0; i < wave.count; i++)
+                {
+                    var group = wave.enemyGroups[groupIndex];
+                    groupIndex = (groupIndex + 1) % wave.enemyGroups.Length;
+                    SpawnEnemyFromGroup(group, spawnDirections);
+                    yield return new WaitForSeconds(wave.spawnInterval);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < wave.count; i++)
+                {
+                    SpawnEnemy(wave);
+                    yield return new WaitForSeconds(wave.spawnInterval);
+                }
             }
 
             activeWaveCount = Mathf.Max(0, activeWaveCount - 1);
@@ -73,7 +91,25 @@ namespace Jiangshi.Waves
             }
 
             var spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            var unit = unitManager.Spawn(wave.enemy, spawnPoint.position, spawnPoint.rotation);
+            var unit = unitManager.Spawn(wave.enemy, GetSpawnPosition(spawnPoint.position), spawnPoint.rotation);
+
+            if (unit is Zombie zombie)
+            {
+                zombie.SetTarget(defaultTarget);
+                zombie.SetAggressive();
+            }
+        }
+
+        private void SpawnEnemyFromGroup(WaveData.EnemyGroup group, int directionCount)
+        {
+            if (unitManager == null || group.enemy == null || spawnPoints == null || spawnPoints.Length == 0)
+            {
+                return;
+            }
+
+            var spawnIndex = Random.Range(0, Mathf.Min(directionCount, spawnPoints.Length));
+            var spawnPoint = spawnPoints[spawnIndex];
+            var unit = unitManager.Spawn(group.enemy, GetSpawnPosition(spawnPoint.position), spawnPoint.rotation);
 
             if (unit is Zombie zombie)
             {
@@ -111,6 +147,60 @@ namespace Jiangshi.Waves
                     zombie.SetAggressive();
                 }
             }
+        }
+
+        private Vector3 GetSpawnPosition(Vector3 requestedPosition)
+        {
+            if (gridManager == null)
+            {
+                gridManager = FindObjectOfType<GridManager>();
+            }
+
+            if (gridManager == null)
+            {
+                return requestedPosition;
+            }
+
+            var requestedGrid = gridManager.WorldToGrid(requestedPosition);
+            var clampedGrid = new GridPosition(
+                Mathf.Clamp(requestedGrid.X, 0, gridManager.Width - 1),
+                Mathf.Clamp(requestedGrid.Y, 0, gridManager.Height - 1));
+
+            if (TryFindWalkableCell(clampedGrid, out var spawnGrid))
+            {
+                return gridManager.GridToWorld(spawnGrid);
+            }
+
+            return gridManager.GridToWorld(clampedGrid);
+        }
+
+        private bool TryFindWalkableCell(GridPosition start, out GridPosition result)
+        {
+            var maxRadius = Mathf.Max(0, spawnSearchRadius);
+            for (var radius = 0; radius <= maxRadius; radius++)
+            {
+                for (var x = start.X - radius; x <= start.X + radius; x++)
+                {
+                    for (var y = start.Y - radius; y <= start.Y + radius; y++)
+                    {
+                        if (radius > 0 && x != start.X - radius && x != start.X + radius && y != start.Y - radius && y != start.Y + radius)
+                        {
+                            continue;
+                        }
+
+                        var candidate = new GridPosition(x, y);
+                        var cell = gridManager.GetCell(candidate);
+                        if (cell != null && cell.IsWalkable)
+                        {
+                            result = candidate;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            result = start;
+            return false;
         }
 
         private UnitData GetZombieData()

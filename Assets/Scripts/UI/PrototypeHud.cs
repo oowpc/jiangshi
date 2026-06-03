@@ -35,9 +35,14 @@ namespace Jiangshi.UI
         [SerializeField] private Button[] buildButtons;
         [SerializeField] private Text[] buildButtonLabels;
         [SerializeField] private BuildingData[] buildButtonData;
-        [SerializeField] private Color buildButtonNormalColor = new Color(0.13f, 0.2f, 0.24f, 0.96f);
-        [SerializeField] private Color buildButtonSelectedColor = new Color(0.16f, 0.46f, 0.31f, 0.98f);
-        [SerializeField] private Color buildButtonDisabledColor = new Color(0.12f, 0.13f, 0.14f, 0.72f);
+        [SerializeField] private Color buildButtonNormalColor = new Color(0.10f, 0.16f, 0.19f, 0.96f);
+        [SerializeField] private Color buildButtonSelectedColor = new Color(0.16f, 0.42f, 0.31f, 0.98f);
+        [SerializeField] private Color buildButtonDisabledColor = new Color(0.08f, 0.09f, 0.10f, 0.72f);
+        [SerializeField] private Color buildButtonNormalOutlineColor = new Color(0.28f, 0.38f, 0.40f, 0.75f);
+        [SerializeField] private Color buildButtonSelectedOutlineColor = new Color(0.95f, 0.74f, 0.33f, 1f);
+        [SerializeField] private Color buildButtonDisabledOutlineColor = new Color(0.13f, 0.15f, 0.16f, 0.55f);
+        [SerializeField] private Color buildButtonTextColor = new Color(0.92f, 0.96f, 0.93f, 1f);
+        [SerializeField] private Color buildButtonDisabledTextColor = new Color(0.48f, 0.52f, 0.52f, 0.92f);
         [SerializeField] private bool enableDebugDefeatKey = true;
         [SerializeField] private KeyCode debugDefeatKey = KeyCode.F9;
         [SerializeField] private bool enableDebugVictoryKey = true;
@@ -369,6 +374,12 @@ namespace Jiangshi.UI
 
         private void RefreshResources()
         {
+            SetText(goldText, $"GOLD  {GetResource(ResourceType.Gold)}");
+            SetText(woodText, $"WOOD  {GetResource(ResourceType.Wood)}");
+            SetText(foodText, $"FOOD  {GetResource(ResourceType.Food)}");
+            SetText(powerText, $"PWR {GetResource(ResourceType.Power)}   POP {GetResource(ResourceType.Population)}");
+            return;
+
             SetText(goldText, $"金币: {GetResource(ResourceType.Gold)}");
             SetText(woodText, $"木材: {GetResource(ResourceType.Wood)}");
             SetText(foodText, $"食物: {GetResource(ResourceType.Food)}");
@@ -382,6 +393,15 @@ namespace Jiangshi.UI
 
         private void RefreshBaseHealth()
         {
+            if (commandBase == null)
+            {
+                SetText(baseHealthText, "BASE  DESTROYED");
+                return;
+            }
+
+            SetText(baseHealthText, $"BASE  {commandBase.CurrentHealth}/{commandBase.MaxHealth}");
+            return;
+
             if (commandBase == null)
             {
                 SetText(baseHealthText, "基地: 已摧毁");
@@ -400,6 +420,16 @@ namespace Jiangshi.UI
         {
             if (survivalTimer == null)
             {
+                SetText(survivalText, "SURVIVE  --:--");
+                return;
+            }
+
+            var hudRemaining = Mathf.CeilToInt(survivalTimer.RemainingSeconds);
+            SetText(survivalText, $"SURVIVE  {hudRemaining / 60:00}:{hudRemaining % 60:00}");
+            return;
+
+            if (survivalTimer == null)
+            {
                 SetText(survivalText, "存活: --:--");
                 return;
             }
@@ -412,6 +442,30 @@ namespace Jiangshi.UI
 
         private void RefreshGameState()
         {
+            var hudState = gameManager != null ? gameManager.State : GameState.Boot;
+            var hudStateLabel = hudState switch
+            {
+                GameState.Playing => "PLAYING",
+                GameState.Paused => "PAUSED",
+                GameState.Defeat => "DEFEAT",
+                GameState.Victory => "VICTORY",
+                _ => "BOOTING"
+            };
+            SetText(gameStateText, $"STATE  {hudStateLabel}");
+            SetText(pauseButtonLabel, hudState == GameState.Paused ? "RESUME" : "PAUSE");
+
+            if (defeatPanel != null)
+            {
+                defeatPanel.SetActive(hudState == GameState.Defeat);
+            }
+
+            if (victoryPanel != null)
+            {
+                victoryPanel.SetActive(hudState == GameState.Victory);
+            }
+
+            return;
+
             var state = gameManager != null ? gameManager.State : GameState.Boot;
             var stateLabel = state switch
             {
@@ -513,7 +567,7 @@ namespace Jiangshi.UI
                 var canAfford = CanAffordBuildData(data);
                 var isSelected = placementSystem != null && placementSystem.SelectedBuilding == data;
                 button.interactable = canAfford;
-                SetButtonColor(button, !canAfford ? buildButtonDisabledColor : isSelected ? buildButtonSelectedColor : buildButtonNormalColor);
+                SetBuildButtonVisual(button, label, canAfford, isSelected);
                 SetText(label, FormatBuildButtonLabel(i, data));
             }
         }
@@ -532,6 +586,21 @@ namespace Jiangshi.UI
 
         private string FormatBuildButtonLabel(int index, BuildingData data)
         {
+            var labelBuilder = new StringBuilder();
+            labelBuilder.Append('[');
+            labelBuilder.Append(index == 9 ? 0 : index + 1);
+            labelBuilder.Append("] ");
+            labelBuilder.Append(string.IsNullOrWhiteSpace(data.displayName) ? data.name : data.displayName);
+
+            var costText = FormatBuildCosts(data);
+            if (!string.IsNullOrEmpty(costText))
+            {
+                labelBuilder.Append('\n');
+                labelBuilder.Append(costText);
+            }
+
+            return labelBuilder.ToString();
+
             var builder = new StringBuilder();
             builder.Append(index + 1);
             builder.Append(". ");
@@ -564,8 +633,64 @@ namespace Jiangshi.UI
             return builder.ToString();
         }
 
+        private string FormatBuildCosts(BuildingData data)
+        {
+            if (data == null)
+            {
+                return string.Empty;
+            }
+
+            var costBuilder = new StringBuilder();
+            if (data.buildCost != null)
+            {
+                for (var i = 0; i < data.buildCost.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        costBuilder.Append("  ");
+                    }
+
+                    costBuilder.Append(FormatCost(data.buildCost[i]));
+                }
+            }
+
+            if (data.powerCost > 0)
+            {
+                if (costBuilder.Length > 0)
+                {
+                    costBuilder.Append("  ");
+                }
+
+                costBuilder.Append($"P{data.powerCost}");
+            }
+
+            if (data.populationCost > 0)
+            {
+                if (costBuilder.Length > 0)
+                {
+                    costBuilder.Append("  ");
+                }
+
+                costBuilder.Append($"POP{data.populationCost}");
+            }
+
+            return costBuilder.ToString();
+        }
+
         private string FormatCost(ResourceAmount cost)
         {
+            return cost.type switch
+            {
+                ResourceType.Gold => $"G{cost.amount}",
+                ResourceType.Wood => $"W{cost.amount}",
+                ResourceType.Food => $"F{cost.amount}",
+                ResourceType.Power => $"P{cost.amount}",
+                ResourceType.Population => $"POP{cost.amount}",
+                ResourceType.Iron => $"FE{cost.amount}",
+                ResourceType.Copper => $"CU{cost.amount}",
+                _ => $"{cost.amount} {cost.type}"
+            };
+
             return cost.type switch
             {
                 ResourceType.Gold => $"{cost.amount}金",
@@ -579,6 +704,17 @@ namespace Jiangshi.UI
             };
         }
 
+        private void SetBuildButtonVisual(Button button, Text label, bool canAfford, bool isSelected)
+        {
+            SetButtonColor(button, !canAfford ? buildButtonDisabledColor : isSelected ? buildButtonSelectedColor : buildButtonNormalColor);
+            SetButtonOutline(button, !canAfford ? buildButtonDisabledOutlineColor : isSelected ? buildButtonSelectedOutlineColor : buildButtonNormalOutlineColor, isSelected ? 3f : 1f);
+
+            if (label != null)
+            {
+                label.color = canAfford ? buildButtonTextColor : buildButtonDisabledTextColor;
+            }
+        }
+
         private void SetButtonColor(Button button, Color color)
         {
             var graphic = button.targetGraphic != null ? button.targetGraphic : button.GetComponent<Graphic>();
@@ -586,6 +722,18 @@ namespace Jiangshi.UI
             {
                 graphic.color = color;
             }
+        }
+
+        private void SetButtonOutline(Button button, Color color, float thickness)
+        {
+            var outline = button.GetComponent<Outline>();
+            if (outline == null)
+            {
+                outline = button.gameObject.AddComponent<Outline>();
+            }
+
+            outline.effectColor = color;
+            outline.effectDistance = new Vector2(thickness, -thickness);
         }
 
         private Damageable FindCriticalBuildingHealth()
@@ -616,11 +764,13 @@ namespace Jiangshi.UI
                 return;
             }
 
-            demolitionPanel = CreateRuntimePanel(transform, "Demolition Panel", new Vector2(0.5f, 0f), new Vector2(0f, 86f), new Vector2(360f, 132f), new Color(0.035f, 0.045f, 0.052f, 0.92f));
+            demolitionPanel = CreateRuntimePanel(transform, "Demolition Panel", new Vector2(0.5f, 0f), new Vector2(0f, 88f), new Vector2(360f, 132f), new Color(0.035f, 0.047f, 0.052f, 0.92f));
             demolitionTitleText = CreateRuntimeText(demolitionPanel.transform, "Demolition Title", "未选择建筑", 20, new Vector2(0f, 38f), new Vector2(320f, 30f), TextAnchor.MiddleCenter);
             demolitionRefundText = CreateRuntimeText(demolitionPanel.transform, "Demolition Refund", "", 16, new Vector2(0f, 10f), new Vector2(320f, 28f), TextAnchor.MiddleCenter);
             demolitionButton = CreateRuntimeButton(demolitionPanel.transform, "Demolition Button", "拆除", new Vector2(0.5f, 0.5f), new Vector2(0f, -38f), new Vector2(132f, 38f));
             demolitionButtonLabel = demolitionButton.GetComponentInChildren<Text>();
+            demolitionTitleText.text = "NO BUILDING SELECTED";
+            demolitionButtonLabel.text = "DEMOLISH";
             demolitionButton.onClick.AddListener(DemolishSelectedBuilding);
             demolitionPanel.SetActive(false);
         }
@@ -645,6 +795,24 @@ namespace Jiangshi.UI
 
             if (!selectedDemolitionBuilding.CanDemolish())
             {
+                SetText(demolitionRefundText, "Core building cannot be demolished");
+                SetText(demolitionButtonLabel, "LOCKED");
+                demolitionButton.interactable = false;
+                return;
+            }
+
+            SetText(demolitionRefundText, $"Refund: {FormatRefund(data)}");
+            SetText(demolitionButtonLabel, "DEMOLISH");
+            demolitionButton.interactable = true;
+            return;
+
+            if (!selectedDemolitionBuilding.CanDemolish())
+            {
+                SetText(demolitionRefundText, "Core building cannot be demolished");
+                SetText(demolitionButtonLabel, "LOCKED");
+                demolitionButton.interactable = false;
+                return;
+
                 SetText(demolitionRefundText, "核心建筑不能拆除");
                 SetText(demolitionButtonLabel, "不可拆除");
                 demolitionButton.interactable = false;
@@ -693,6 +861,8 @@ namespace Jiangshi.UI
             var root = transform;
             settingsButton = CreateRuntimeButton(root, "Settings Button", "设置", new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(104f, 38f));
             settingsButton.onClick.AddListener(ToggleSettings);
+            SetupRuntimeRect(settingsButton.gameObject, new Vector2(1f, 1f), new Vector2(-76f, -24f), new Vector2(116f, 38f));
+            settingsButton.GetComponentInChildren<Text>().text = "MENU";
 
             settingsPanel = CreateRuntimePanel(root, "Settings Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(360f, 210f), new Color(0.035f, 0.045f, 0.052f, 0.94f));
             CreateRuntimeText(settingsPanel.transform, "Settings Title", "设置", 30, new Vector2(0f, 62f), new Vector2(300f, 44f), TextAnchor.MiddleCenter);
@@ -702,6 +872,19 @@ namespace Jiangshi.UI
             settingsQuitButton = CreateRuntimeButton(settingsPanel.transform, "Settings Quit Button", "退出游戏", new Vector2(0.5f, 0.5f), new Vector2(82f, -52f), new Vector2(132f, 44f));
             settingsCloseButton.onClick.AddListener(CloseSettings);
             settingsQuitButton.onClick.AddListener(QuitGame);
+            var settingsTexts = settingsPanel.GetComponentsInChildren<Text>();
+            if (settingsTexts.Length > 0)
+            {
+                settingsTexts[0].text = "SETTINGS";
+            }
+
+            if (settingsTexts.Length > 1)
+            {
+                settingsTexts[1].text = "Game paused";
+            }
+
+            settingsCloseButton.GetComponentInChildren<Text>().text = "RESUME";
+            settingsQuitButton.GetComponentInChildren<Text>().text = "QUIT";
             settingsPanel.SetActive(false);
         }
 
@@ -736,7 +919,12 @@ namespace Jiangshi.UI
             colors.highlightedColor = new Color(0.18f, 0.31f, 0.36f, 1f);
             colors.pressedColor = new Color(0.08f, 0.13f, 0.16f, 1f);
             colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = new Color(0.10f, 0.11f, 0.12f, 0.72f);
             button.colors = colors;
+
+            var outline = buttonObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.28f, 0.38f, 0.40f, 0.75f);
+            outline.effectDistance = new Vector2(1f, -1f);
 
             CreateRuntimeText(buttonObject.transform, "Label", label, 18, Vector2.zero, size, TextAnchor.MiddleCenter);
             return button;
@@ -759,7 +947,12 @@ namespace Jiangshi.UI
 
         private static void SetupRuntimeRect(GameObject obj, Vector2 anchor, Vector2 anchoredPosition, Vector2 size)
         {
-            var rect = obj.AddComponent<RectTransform>();
+            var rect = obj.GetComponent<RectTransform>();
+            if (rect == null)
+            {
+                rect = obj.AddComponent<RectTransform>();
+            }
+
             rect.anchorMin = anchor;
             rect.anchorMax = anchor;
             rect.pivot = new Vector2(0.5f, 0.5f);

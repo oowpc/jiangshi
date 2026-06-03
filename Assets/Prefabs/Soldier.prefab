@@ -178,6 +178,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data: {fileID: 0}
+  maxOverlapHits: 64
 --- !u!114 &135518205635140170
 MonoBehaviour:
   m_ObjectHideFlags: 0

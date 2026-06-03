@@ -86,7 +86,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.2246094, y: 1.2246094}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -211,3 +211,4 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   projectilePrefab: {fileID: 8196761598583758126, guid: d622df8cf56438e4ab7155bc23f2da25, type: 3}
+  maxOverlapHits: 64

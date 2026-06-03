@@ -102,6 +102,16 @@ namespace Jiangshi.Editor
             var archerData = CreateUnitData("ArcherData", "弓箭手", archerPrefab, 40, 2.8f, 8, 6f, 1.3f);
             var zombieData = CreateUnitData("ZombieData", "僵尸", zombiePrefab, 35, 2f, 6, 1.2f, 1.1f);
             CreateWaveData("Wave01", zombieData);
+            var fastZombiePrefab = CreateUnitPrefab<Zombie>("FastZombie", PrimitiveType.Capsule, new Color(0.9f, 0.25f, 0.15f), Faction.Enemy, new Vector3(0.75f, 0.75f, 0.75f));
+            SetupSpriteAnimation(fastZombiePrefab, "Zombie", 4, 16);
+            var fastZombieData = CreateUnitData("FastZombieData", "高速僵尸", fastZombiePrefab, 30, 4f, 4, 1.0f, 1.0f);
+
+            var largeZombiePrefab = CreateUnitPrefab<Zombie>("LargeZombie", PrimitiveType.Capsule, new Color(0.6f, 0.25f, 0.7f), Faction.Enemy, new Vector3(1.5f, 1.5f, 1.5f));
+            SetupSpriteAnimation(largeZombiePrefab, "Zombie", 4, 16);
+            var largeZombieData = CreateUnitData("LargeZombieData", "大型僵尸", largeZombiePrefab, 120, 1f, 12, 1.5f, 1.3f);
+
+            EditorUtility.SetDirty(fastZombieData);
+            EditorUtility.SetDirty(largeZombieData);
 
             // Set training costs
             soldierData.trainingCost = new[]
@@ -155,7 +165,6 @@ namespace Jiangshi.Editor
 
             var systems = new GameObject("Systems");
             var gameManager = systems.AddComponent<GameManager>();
-            var timeManager = systems.AddComponent<TimeManager>();
             var gridManager = systems.AddComponent<GridManager>();
             var resourceManager = systems.AddComponent<ResourceManager>();
             var survivalTimer = systems.AddComponent<SurvivalTimer>();
@@ -168,10 +177,8 @@ namespace Jiangshi.Editor
             var flowField = systems.AddComponent<Jiangshi.Pathfinding.FlowField>();
             var unitCommand = systems.AddComponent<Jiangshi.Units.UnitCommandController>();
             systems.AddComponent<Jiangshi.UI.TrainingPanel>();
-            systems.AddComponent<Jiangshi.Pathfinding.PathfindingManager>();
 
             _ = gameManager;
-            _ = timeManager;
             _ = gridManager;
             _ = resourceManager;
             _ = survivalTimer;
@@ -207,10 +214,12 @@ namespace Jiangshi.Editor
             SetObjectReference(placementSystem, "buildingManager", buildingManager);
             SetObjectReference(placementSystem, "selectedBuilding", towerData);
             SetObjectArray(placementSystem, "buildingOptions", new Object[] { baseData, wallData, towerData, goldMineData, lumberMillData, barracksData, powerPlantData, farmData, ironMineData, copperMineData });
+            SetObjectReference(unitCommand, "worldCamera", camera);
             SetObjectReference(survivalTimer, "gameManager", gameManager);
             SetObjectReference(buildingManager, "gridManager", gridManager);
 
             SetObjectReference(waveManager, "unitManager", unitManager);
+            SetObjectReference(waveManager, "gridManager", gridManager);
             SetObjectReference(waveManager, "defaultTarget", commandBase.transform);
             SetObjectArray(waveManager, "spawnPoints", spawnPoints);
             SetObjectArray(waveManager, "waves", new Object[] { waveData });
@@ -226,9 +235,15 @@ namespace Jiangshi.Editor
             SetObjectReference(mapGenerator, "copperOrePrefab", copperOrePrefab);
             SetObjectReference(mapGenerator, "zombieData", AssetDatabase.LoadAssetAtPath<UnitData>($"{UnitDataRoot}/ZombieData.asset"));
             SetObjectReference(mapGenerator, "unitManager", unitManager);
+            SetInt(mapGenerator, "initialZombieCount", 64);
+            SetInt(mapGenerator, "initialZombieEdgeBand", 14);
+            SetInt(mapGenerator, "initialZombieBoundaryMargin", 3);
+            SetFloat(mapGenerator, "initialZombiePositionJitter", 0.35f);
+            SetInt(mapGenerator, "initialZombieSpawnAttempts", 80);
             SetObjectReference(mapGenerator, "defaultTarget", commandBase.transform);
 
             SetObjectReference(terrainGenerator, "gridManager", gridManager);
+            SetInt(terrainGenerator, "terrainSortingOrder", -5);
             var grassTiles = CreateTerrainTileset("Grass", new Color(0.28f, 0.45f, 0.2f), new Color(0.22f, 0.35f, 0.15f));
             var snowTiles = CreateTerrainTileset("Snow", new Color(0.9f, 0.92f, 0.95f), new Color(0.7f, 0.75f, 0.8f));
             var dirtTiles = CreateTerrainTileset("Dirt", new Color(0.55f, 0.4f, 0.22f), new Color(0.4f, 0.28f, 0.14f));
@@ -264,10 +279,14 @@ namespace Jiangshi.Editor
 
             if (gameManager == null || placementSystem == null || resourceManager == null || waveManager == null || commandBase == null)
             {
-                EditorUtility.DisplayDialog(
-                    "Jiangshi",
-                    "Current scene is missing required prototype objects. Run Jiangshi/Setup/Create Prototype Scene first.",
-                    "OK");
+                if (!Application.isBatchMode)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Jiangshi",
+                        "Current scene is missing required prototype objects. Run Jiangshi/Setup/Create Prototype Scene first.",
+                        "OK");
+                }
+
                 return;
             }
 
@@ -301,7 +320,17 @@ namespace Jiangshi.Editor
             }
 
             AssetDatabase.Refresh();
-            EditorUtility.DisplayDialog("Jiangshi", "Prototype HUD refreshed in the current scene.", "OK");
+            if (!Application.isBatchMode)
+            {
+                EditorUtility.DisplayDialog("Jiangshi", "Prototype HUD refreshed in the current scene.", "OK");
+            }
+        }
+
+        public static void RefreshPrototypeHudSceneForBatch()
+        {
+            var scenePath = $"{SceneRoot}/Prototype.unity";
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            AddOrRefreshHudInCurrentScene();
         }
 
         private static bool IsPlayModeBlocked(string actionName)
@@ -532,7 +561,7 @@ namespace Jiangshi.Editor
             return data;
         }
 
-        private static GameObject CreateUnitPrefab<T>(string name, PrimitiveType primitiveType, Color color, Faction faction) where T : Unit
+        private static GameObject CreateUnitPrefab<T>(string name, PrimitiveType primitiveType, Color color, Faction faction, Vector3? scale = null) where T : Unit
         {
             var instance = new GameObject(name);
             instance.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
@@ -545,6 +574,11 @@ namespace Jiangshi.Editor
             instance.AddComponent<FactionMember>().SetFaction(faction);
             instance.AddComponent<T>();
             instance.AddComponent<Jiangshi.UI.UnitHealthBar>();
+            if (scale.HasValue)
+            {
+                instance.transform.localScale = scale.Value;
+            }
+
             return SavePrefab(instance, $"{PrefabRoot}/{name}.prefab");
         }
 
@@ -698,42 +732,59 @@ namespace Jiangshi.Editor
                 new Vector2(0f, 1f),
                 new Vector2(0f, 1f),
                 new Vector2(24f, -24f),
-                new Vector2(360f, 322f),
-                new Color(0.045f, 0.06f, 0.07f, 0.9f));
+                new Vector2(376f, 176f),
+                new Color(0.035f, 0.047f, 0.052f, 0.92f));
 
             CreateAccentBar(statusPanel.transform, "Status Accent", new Vector2(18f, -12f), new Vector2(96f, 4f), new Color(0.1f, 0.72f, 0.7f, 1f));
-            CreateInsetBox(statusPanel.transform, "Resource Surface", new Vector2(14f, -58f), new Vector2(332f, 78f), new Color(0.08f, 0.105f, 0.12f, 0.84f));
-            CreateInsetBox(statusPanel.transform, "Objective Surface", new Vector2(14f, -150f), new Vector2(332f, 142f), new Color(0.075f, 0.095f, 0.11f, 0.78f));
+            CreateInsetBox(statusPanel.transform, "Resource Surface", new Vector2(14f, -54f), new Vector2(348f, 78f), new Color(0.08f, 0.105f, 0.12f, 0.84f));
+            CreateInsetBox(statusPanel.transform, "Base Surface", new Vector2(14f, -138f), new Vector2(348f, 34f), new Color(0.075f, 0.095f, 0.11f, 0.78f));
 
-            var gameStateText = CreateText(statusPanel.transform, "Game State Text", "State: Boot", 21, new Vector2(18f, -24f), new Vector2(190f, 28f));
+            var gameStateText = CreateText(statusPanel.transform, "Game State Text", "STATE  BOOT", 18, new Vector2(18f, -24f), new Vector2(190f, 26f));
             gameStateText.color = new Color(0.8f, 0.93f, 0.9f, 1f);
             var pauseButton = CreateButton(statusPanel.transform, "Pause Button", "暂停", Vector2.zero, new Vector2(106f, 36f));
-            SetupRect(pauseButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(230f, -18f), new Vector2(106f, 36f));
+            SetupRect(pauseButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(260f, -18f), new Vector2(96f, 34f));
             var pauseButtonLabel = pauseButton.GetComponentInChildren<Text>();
-            var goldText = CreateText(statusPanel.transform, "Gold Text", "Gold: 0", 20, new Vector2(28f, -70f), new Vector2(146f, 28f));
-            var woodText = CreateText(statusPanel.transform, "Wood Text", "Wood: 0", 20, new Vector2(188f, -70f), new Vector2(146f, 28f));
-            var foodText = CreateText(statusPanel.transform, "Food Text", "Food: 0", 20, new Vector2(28f, -106f), new Vector2(146f, 28f));
-            var powerText = CreateText(statusPanel.transform, "Power Text", "Power: 0", 20, new Vector2(188f, -106f), new Vector2(146f, 28f));
-            var baseHealthText = CreateText(statusPanel.transform, "Base Health Text", "Base: 0/0", 21, new Vector2(28f, -164f), new Vector2(304f, 28f));
-            var survivalText = CreateText(statusPanel.transform, "Survival Text", "Survive: 03:00", 21, new Vector2(28f, -202f), new Vector2(304f, 28f));
-            var waveStatusText = CreateText(statusPanel.transform, "Wave Status Text", "No waves", 21, new Vector2(28f, -240f), new Vector2(304f, 28f));
+            pauseButtonLabel.text = "PAUSE";
+            var goldText = CreateText(statusPanel.transform, "Gold Text", "GOLD  0", 18, new Vector2(28f, -66f), new Vector2(150f, 24f));
+            var woodText = CreateText(statusPanel.transform, "Wood Text", "WOOD  0", 18, new Vector2(196f, -66f), new Vector2(150f, 24f));
+            var foodText = CreateText(statusPanel.transform, "Food Text", "FOOD  0", 18, new Vector2(28f, -100f), new Vector2(150f, 24f));
+            var powerText = CreateText(statusPanel.transform, "Power Text", "PWR 0   POP 0", 18, new Vector2(196f, -100f), new Vector2(150f, 24f));
+            var baseHealthText = CreateText(statusPanel.transform, "Base Health Text", "BASE  0/0", 18, new Vector2(28f, -140f), new Vector2(316f, 24f));
+
+            var objectivePanel = CreatePanel(
+                canvasObject.transform,
+                "Objective Panel",
+                new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 1f),
+                new Vector2(0f, -24f),
+                new Vector2(520f, 112f),
+                new Color(0.035f, 0.047f, 0.052f, 0.90f));
+
+            CreateAccentBar(objectivePanel.transform, "Objective Accent", new Vector2(28f, -12f), new Vector2(96f, 4f), new Color(0.92f, 0.68f, 0.25f, 1f));
+            var survivalText = CreateText(objectivePanel.transform, "Survival Text", "SURVIVE  03:00", 28, new Vector2(26f, -28f), new Vector2(468f, 34f));
+            survivalText.alignment = TextAnchor.MiddleCenter;
+            survivalText.color = new Color(0.95f, 0.86f, 0.66f, 1f);
+            var waveStatusText = CreateText(objectivePanel.transform, "Wave Status Text", "No waves", 18, new Vector2(28f, -70f), new Vector2(464f, 26f));
+            waveStatusText.alignment = TextAnchor.MiddleCenter;
 
             var buildPanel = CreatePanel(
                 canvasObject.transform,
                 "Build Panel",
-                new Vector2(1f, 1f),
-                new Vector2(1f, 1f),
-                new Vector2(1f, 1f),
-                new Vector2(-24f, -24f),
-                new Vector2(320f, 548f),
-                new Color(0.045f, 0.055f, 0.062f, 0.9f));
+                new Vector2(0f, 0f),
+                new Vector2(0f, 0f),
+                new Vector2(0f, 0f),
+                new Vector2(24f, 24f),
+                new Vector2(640f, 286f),
+                new Color(0.035f, 0.047f, 0.052f, 0.92f));
 
             CreateAccentBar(buildPanel.transform, "Build Accent", new Vector2(18f, -12f), new Vector2(72f, 4f), new Color(0.92f, 0.68f, 0.25f, 1f));
             var buildTitle = CreateText(buildPanel.transform, "Build Title", "建造", 22, new Vector2(18f, -18f), new Vector2(284f, 28f));
             buildTitle.alignment = TextAnchor.MiddleLeft;
+            buildTitle.text = "BUILD";
             buildTitle.color = new Color(0.95f, 0.86f, 0.66f, 1f);
 
-            var compactButtonSize = new Vector2(284f, 42f);
+            var compactButtonSize = new Vector2(292f, 38f);
             var baseButton = CreateButton(buildPanel.transform, "Command Base Build Button", "1. 指挥基地", Vector2.zero, compactButtonSize);
             var wallButton = CreateButton(buildPanel.transform, "Wall Build Button", "2. 城墙", Vector2.zero, compactButtonSize);
             var towerButton = CreateButton(buildPanel.transform, "Tower Build Button", "3. 箭塔", Vector2.zero, compactButtonSize);
@@ -745,15 +796,15 @@ namespace Jiangshi.Editor
             var ironMineButton = CreateButton(buildPanel.transform, "Iron Mine Build Button", "9. 铁矿场", Vector2.zero, compactButtonSize);
             var copperMineButton = CreateButton(buildPanel.transform, "Copper Mine Build Button", "0. 铜矿场", Vector2.zero, compactButtonSize);
             SetupRect(baseButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -58f), compactButtonSize);
-            SetupRect(wallButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -106f), compactButtonSize);
-            SetupRect(towerButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -154f), compactButtonSize);
-            SetupRect(goldMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -202f), compactButtonSize);
-            SetupRect(lumberMillButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -250f), compactButtonSize);
-            SetupRect(barracksButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -298f), compactButtonSize);
-            SetupRect(powerPlantButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -346f), compactButtonSize);
-            SetupRect(farmButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -394f), compactButtonSize);
-            SetupRect(ironMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -442f), compactButtonSize);
-            SetupRect(copperMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -490f), compactButtonSize);
+            SetupRect(wallButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(324f, -58f), compactButtonSize);
+            SetupRect(towerButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -102f), compactButtonSize);
+            SetupRect(goldMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(324f, -102f), compactButtonSize);
+            SetupRect(lumberMillButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -146f), compactButtonSize);
+            SetupRect(barracksButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(324f, -146f), compactButtonSize);
+            SetupRect(powerPlantButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -190f), compactButtonSize);
+            SetupRect(farmButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(324f, -190f), compactButtonSize);
+            SetupRect(ironMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -234f), compactButtonSize);
+            SetupRect(copperMineButton.gameObject, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(324f, -234f), compactButtonSize);
             var baseButtonLabel = baseButton.GetComponentInChildren<Text>();
             var wallButtonLabel = wallButton.GetComponentInChildren<Text>();
             var towerButtonLabel = towerButton.GetComponentInChildren<Text>();
@@ -792,16 +843,20 @@ namespace Jiangshi.Editor
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
                 Vector2.zero,
-                new Vector2(420f, 230f),
-                new Color(0.04f, 0.04f, 0.04f, 0.86f));
+                new Vector2(460f, 248f),
+                new Color(0.045f, 0.055f, 0.062f, 0.94f));
 
             var defeatTitle = CreateText(defeatPanel.transform, "Defeat Title", "失败", 44, new Vector2(0f, 56f), new Vector2(360f, 58f));
             defeatTitle.alignment = TextAnchor.MiddleCenter;
+            defeatTitle.text = "DEFEAT";
+            defeatTitle.color = new Color(0.95f, 0.42f, 0.36f, 1f);
 
             var defeatMessage = CreateText(defeatPanel.transform, "Defeat Message", "指挥基地被摧毁了。", 22, new Vector2(0f, 6f), new Vector2(360f, 40f));
             defeatMessage.alignment = TextAnchor.MiddleCenter;
+            defeatMessage.text = "The command base has fallen.";
 
             var restartButton = CreateButton(defeatPanel.transform, "Restart Button", "重新开始", new Vector2(0f, -68f), new Vector2(180f, 48f));
+            restartButton.GetComponentInChildren<Text>().text = "RESTART";
             defeatPanel.SetActive(false);
 
             var victoryPanel = CreatePanel(
@@ -811,16 +866,20 @@ namespace Jiangshi.Editor
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
                 Vector2.zero,
-                new Vector2(420f, 230f),
-                new Color(0.04f, 0.08f, 0.05f, 0.86f));
+                new Vector2(460f, 248f),
+                new Color(0.035f, 0.075f, 0.055f, 0.94f));
 
             var victoryTitle = CreateText(victoryPanel.transform, "Victory Title", "胜利", 44, new Vector2(0f, 56f), new Vector2(360f, 58f));
             victoryTitle.alignment = TextAnchor.MiddleCenter;
+            victoryTitle.text = "VICTORY";
+            victoryTitle.color = new Color(0.55f, 0.95f, 0.68f, 1f);
 
             var victoryMessage = CreateText(victoryPanel.transform, "Victory Message", "指挥基地存活了下来！", 22, new Vector2(0f, 6f), new Vector2(360f, 40f));
             victoryMessage.alignment = TextAnchor.MiddleCenter;
+            victoryMessage.text = "The command base survived.";
 
             var victoryRestartButton = CreateButton(victoryPanel.transform, "Victory Restart Button", "重新开始", new Vector2(0f, -68f), new Vector2(180f, 48f));
+            victoryRestartButton.GetComponentInChildren<Text>().text = "RESTART";
             victoryPanel.SetActive(false);
 
             SetObjectReference(hud, "gameManager", gameManager);
@@ -931,7 +990,18 @@ namespace Jiangshi.Editor
 
             var button = buttonObject.AddComponent<Button>();
             button.targetGraphic = background;
-            button.transition = Selectable.Transition.None;
+            button.transition = Selectable.Transition.ColorTint;
+            var colors = button.colors;
+            colors.normalColor = new Color(1f, 1f, 1f, 1f);
+            colors.highlightedColor = new Color(1.18f, 1.18f, 1.14f, 1f);
+            colors.pressedColor = new Color(0.74f, 0.82f, 0.82f, 1f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = new Color(0.42f, 0.44f, 0.44f, 0.82f);
+            button.colors = colors;
+
+            var outline = buttonObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.28f, 0.38f, 0.40f, 0.75f);
+            outline.effectDistance = new Vector2(1f, -1f);
 
             var shadow = buttonObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.26f);
@@ -1051,6 +1121,22 @@ namespace Jiangshi.Editor
                 property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
             }
 
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetInt(Object target, string propertyName, int value)
+        {
+            var serializedObject = new SerializedObject(target);
+            var property = serializedObject.FindProperty(propertyName);
+            property.intValue = value;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetFloat(Object target, string propertyName, float value)
+        {
+            var serializedObject = new SerializedObject(target);
+            var property = serializedObject.FindProperty(propertyName);
+            property.floatValue = value;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
     }

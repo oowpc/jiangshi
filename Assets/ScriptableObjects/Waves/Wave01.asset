@@ -17,3 +17,5 @@ MonoBehaviour:
   count: 20
   spawnInterval: 0.35
   warningText: Incoming horde
+  enemyGroups: []
+  spawnDirections: 1

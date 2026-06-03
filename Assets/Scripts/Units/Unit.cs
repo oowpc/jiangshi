@@ -26,7 +26,9 @@ namespace Jiangshi.Units
         protected virtual void OnDied(Damageable damageable)
         {
             Died?.Invoke(this);
-            Destroy(gameObject);
+            Destroy(gameObject, GetDeathDestroyDelay());
         }
+
+        protected virtual float GetDeathDestroyDelay() => 0f;
     }
 }
