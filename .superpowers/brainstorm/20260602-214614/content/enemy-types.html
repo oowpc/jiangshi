@@ -1,0 +1,60 @@
+<h2>敌人种类与特殊事件？</h2>
+<p class="subtitle">仅靠普通丧尸撑不起10分钟，需要敌人多样性和关键转折点</p>
+
+<div class="options">
+  <div class="option" data-choice="classic" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>经典三件套 — 普通/高速/大型</h3>
+      <p>第1波纯普通丧尸；第2波混入30%高速丧尸；第3~4波加入大型丧尸（高血量、慢速、高伤害）；第5波全种类混合冲击。简单清晰，实现成本低。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="diverse" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>五类敌人 + 环境事件</h3>
+      <p>普通、高速、大型、自爆（近建筑爆炸）、远程呕吐者。第3波触发"黑夜降临"（视野缩小30%持续60秒），第4波随机方向同时双路进攻。多样性高，每局体验不同。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="evolving" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>进化型 — 每波解锁新敌人但数量克制</h3>
+      <p>第1波20只普通丧尸；第2波30只 + 5只高速；第3波25只普通 + 10高速 + 1只"变异体"（每秒回血）；第4波全种类爆发。重点是"新敌人首次登场时的压迫感"。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:16px">
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">A · 经典三件套</div>
+      <div class="mockup-body" style="font-size:11px;line-height:1.8;padding:10px">
+        🧟 普通 · 基础敌人<br>
+        🏃 高速 · 1.5x移速<br>
+        🦍 大型 · 3x血量<br>
+        <hr style="border-color:#333;margin:8px 0">
+        特殊事件：无
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">B · 五类+事件</div>
+      <div class="mockup-body" style="font-size:11px;line-height:1.8;padding:10px">
+        🧟 普通 &nbsp; 🏃 高速 &nbsp; 🦍 大型<br>
+        💥 自爆 · 近建筑引爆<br>
+        🤮 呕吐者 · 远程攻击<br>
+        <hr style="border-color:#333;margin:8px 0">
+        🌙 黑夜事件 &nbsp; ⚔️ 双路进攻
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">C · 进化型</div>
+      <div class="mockup-body" style="font-size:11px;line-height:1.8;padding:10px">
+        🧟→🏃→🦍→🧬 逐步解锁<br>
+        🧬 变异体 · 每秒回血<br>
+        <hr style="border-color:#333;margin:8px 0">
+        首次登场=压迫感峰值
+      </div>
+    </div>
+  </div>
+</div>

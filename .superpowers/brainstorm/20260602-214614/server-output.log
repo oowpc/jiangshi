@@ -1,0 +1,10 @@
+{"type":"server-started","port":59560,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:59560","screen_dir":"H:\\jiangshi\\.superpowers\\brainstorm\\20260602-214614\\content","state_dir":"H:\\jiangshi\\.superpowers\\brainstorm\\20260602-214614\\state"}
+{"source":"user-event","type":"click","text":"A\n    \n      高压生存 — 每一秒都在挣扎\n      开局资源极度匮乏，波次密集、间隔短。玩家必须在建造和防御之间做残酷取舍，建错一个东西就可能崩盘。核心体验：紧张、压迫、步步惊心。类似 They Are Billions 高难度。","choice":"tense","id":null,"timestamp":1780408825983}
+{"type":"screen-added","file":"H:\\jiangshi\\.superpowers\\brainstorm\\20260602-214614\\content\\wave-structure.html"}
+{"source":"user-event","type":"click","text":"B\n    \n      少量大波 — 4~5波\n      波次间隔较长（90~120秒），但每波数量多、冲击力强。每波都是一次生存考验。第1波纯普通丧尸，第2波混入高速丧尸，第3波起全种类登场。","choice":"few-big","id":null,"timestamp":1780408899938}
+{"type":"screen-added","file":"H:\\jiangshi\\.superpowers\\brainstorm\\20260602-214614\\content\\economy.html"}
+{"source":"user-event","type":"click","text":"B\n    \n      紧巴开局 — 够2~3个建筑，但必须规划\n      开局给 200金+50木+30电力。可以拍箭塔+金矿，或城墙+伐木场。生产者产能适中（8金/60s，4木/60s）。有选择空间但有明确的最优解。适合\"能玩但容易崩\"的体验。","choice":"tight","id":null,"timestamp":1780408965955}
+{"type":"screen-added","file":"H:\\jiangshi\\.superpowers\\brainstorm\\20260602-214614\\content\\enemy-types.html"}
+{"source":"user-event","type":"click","text":"A\n    \n      经典三件套 — 普通/高速/大型\n      第1波纯普通丧尸；第2波混入30%高速丧尸；第3~4波加入大型丧尸（高血量、慢速、高伤害）；第5波全种类混合冲击。简单清晰，实现成本低。","choice":"classic","id":null,"timestamp":1780409046696}
+{"type":"screen-added","file":"H:\\jiangshi\\.superpowers\\brainstorm\\20260602-214614\\content\\full-timeline.html"}
+{"type":"server-stopped","reason":"idle timeout"}

@@ -1,0 +1,48 @@
+<h2>开局资源与经济曲线？</h2>
+<p class="subtitle">结合高压生存基调，经济节奏影响每一秒的决策压力</p>
+
+<div class="options">
+  <div class="option" data-choice="starving" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>赤贫开局 — 起步只够一个建筑</h3>
+      <p>开局仅给 100金+20木，勉强能拍一座箭塔或一座金矿。金矿/伐木场产能低（4金/60s，2木/60s）。玩家必须精准选择第一个建筑，错一步直接崩。适合硬核挑战。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="tight" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>紧巴开局 — 够2~3个建筑，但必须规划</h3>
+      <p>开局给 200金+50木+30电力。可以拍箭塔+金矿，或城墙+伐木场。生产者产能适中（8金/60s，4木/60s）。有选择空间但有明确的最优解。适合"能玩但容易崩"的体验。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="generous" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>充裕开局 — 够4~5个建筑，压力来自波次而非钱包</h3>
+      <p>开局给 400金+100木+50电力+20铁/铜。可以快速铺开基础经济。生产者产能高（10金/60s，6木/60s）。经济不是瓶颈，压力完全来自波次强度和布局策略。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">经济累积曲线对比（纵轴=总资源价值）</div>
+    <div class="mockup-body" style="padding:16px;font-family:monospace;font-size:12px;line-height:1.6">
+      <strong>A · 赤贫</strong><br>
+      min 0: ██ 100g+20w &nbsp;&nbsp; → 只能1个建筑 → 漫长积累<br>
+      min 2: ████ 第一波前勉强凑够第二个建筑<br>
+      min 5: ████████ 第二波前开始有盈余<br>
+      min 8: ██████████████ 经济起飞但可能太晚<br><br>
+      <strong>B · 紧巴</strong><br>
+      min 0: ████ 200g+50w → 2~3个建筑 → 有基础<br>
+      min 2: ████████ 第一波前有防御+经济雏形<br>
+      min 5: ██████████████ 第二波前能出兵<br>
+      min 8: ████████████████████ 稳步扩张<br><br>
+      <strong>C · 充裕</strong><br>
+      min 0: ████████ 400g+100w → 4~5个建筑 → 快速铺开<br>
+      min 2: ██████████████ 经济成型，波次是唯一压力<br>
+      min 5: ████████████████████████ 资源过剩，考验布局上限
+    </div>
+  </div>
+</div>

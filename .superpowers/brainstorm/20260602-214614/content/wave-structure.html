@@ -1,0 +1,71 @@
+<h2>前10分钟：波次密度与敌人构成？</h2>
+<p class="subtitle">高压生存基调下，波次是核心压迫感的来源</p>
+
+<div class="options">
+  <div class="option" data-choice="many-small" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>密集小波 — 8~10波</h3>
+      <p>波次间隔短（30~60秒），每波数量少但频繁。玩家几乎没有喘息时间，必须不断微调防御。前3波只有普通丧尸，第4波起加入高速丧尸，第7波加入大型丧尸。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="few-big" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>少量大波 — 4~5波</h3>
+      <p>波次间隔较长（90~120秒），但每波数量多、冲击力强。每波都是一次生存考验。第1波纯普通丧尸，第2波混入高速丧尸，第3波起全种类登场。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="combo" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>混合节奏 — 6~7波，每波有主题</h3>
+      <p>前期间隔短（压力持续），后期间隔长但波次强度暴增。每波有独特"主菜"：第2波"速度考验"（全高速丧尸）、第4波"数量冲击"（海量普通）、第6波"精英混合"。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">波次时间线对比（颜色深度=压力强度）</div>
+    <div class="mockup-body" style="padding:16px">
+      <div style="margin-bottom:14px">
+        <div class="label" style="margin-bottom:4px">A · 密集小波 (8~10波)</div>
+        <div style="display:flex;height:20px;gap:1px">
+          <div style="flex:1;background:#e74c3c55;border:1px solid #e74c3c88"></div><div style="flex:0.3;background:#2ecc7133"></div>
+          <div style="flex:1;background:#e74c3c66;border:1px solid #e74c3c88"></div><div style="flex:0.5;background:#2ecc7133"></div>
+          <div style="flex:1;background:#e74c3c77;border:1px solid #e74c3c88"></div><div style="flex:0.3;background:#2ecc7133"></div>
+          <div style="flex:1.2;background:#e74c3c88;border:1px solid #e74c3c88"></div><div style="flex:0.3;background:#2ecc7133"></div>
+          <div style="flex:1.2;background:#e74c3c99;border:1px solid #e74c3c88"></div><div style="flex:0.8;background:#2ecc7133"></div>
+          <div style="flex:1.3;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:0.5;background:#2ecc7133"></div>
+          <div style="flex:1.3;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:0.5;background:#2ecc7133"></div>
+          <div style="flex:1.4;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:0.8;background:#2ecc7133"></div>
+          <div style="flex:1.4;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:0.8;background:#2ecc7133"></div>
+        </div>
+        <p style="font-size:10px;color:#999;margin-top:2px">红色=波次 &nbsp; 绿色=间隔</p>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="label" style="margin-bottom:4px">B · 少量大波 (4~5波)</div>
+        <div style="display:flex;height:20px;gap:1px">
+          <div style="flex:2;background:#e74c3c88;border:1px solid #e74c3c88"></div><div style="flex:1.5;background:#2ecc7133"></div>
+          <div style="flex:2.5;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:1.5;background:#2ecc7133"></div>
+          <div style="flex:3;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:1.5;background:#2ecc7133"></div>
+          <div style="flex:3.5;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:2;background:#2ecc7133"></div>
+        </div>
+        <p style="font-size:10px;color:#999;margin-top:2px">每波更强但间隔更长</p>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom:4px">C · 混合节奏 (6~7波)</div>
+        <div style="display:flex;height:20px;gap:1px">
+          <div style="flex:1;background:#e74c3c66;border:1px solid #e74c3c88"></div><div style="flex:0.4;background:#2ecc7133"></div>
+          <div style="flex:1.2;background:#e74c3c77;border:1px solid #e74c3c88"></div><div style="flex:0.8;background:#2ecc7133"></div>
+          <div style="flex:1;background:#e74c3c66;border:1px solid #e74c3c88"></div><div style="flex:0.5;background:#2ecc7133"></div>
+          <div style="flex:2;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:1;background:#2ecc7133"></div>
+          <div style="flex:1.3;background:#e74c3c77;border:1px solid #e74c3c88"></div><div style="flex:0.8;background:#2ecc7133"></div>
+          <div style="flex:2.5;background:#c0392b;border:1px solid #c0392b"></div><div style="flex:1.5;background:#2ecc7133"></div>
+        </div>
+        <p style="font-size:10px;color:#999;margin-top:2px">主题交替，后期爆发</p>
+      </div>
+    </div>
+  </div>
+</div>
