@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Jiangshi.Combat;
+using Jiangshi.Grid;
+using Jiangshi.Pathfinding;
 using Jiangshi.Pools;
 
 namespace Jiangshi.Units
@@ -18,6 +21,11 @@ namespace Jiangshi.Units
         private bool isDead;
         private Damageable lockedAttackTarget;
 
+        private List<Vector3> currentPath;
+        private int pathIndex;
+        private float nextPathUpdate;
+        private Vector3 lastTargetPos;
+
         private void Awake()
         {
             overlapHits = new Collider[Mathf.Max(1, maxOverlapHits)];
@@ -32,6 +40,7 @@ namespace Jiangshi.Units
         {
             lockedAttackTarget = null;
             moveTarget = position;
+            InvalidatePath();
         }
 
         public void AttackTarget(Damageable target)
@@ -41,9 +50,20 @@ namespace Jiangshi.Units
                 return;
             }
 
-            lockedAttackTarget = target;
-            moveTarget = null;
-            nextAttackTime = Mathf.Min(nextAttackTime, Time.time);
+            if (lockedAttackTarget != target)
+            {
+                lockedAttackTarget = target;
+                moveTarget = null;
+                nextAttackTime = Mathf.Min(nextAttackTime, Time.time);
+                InvalidatePath();
+            }
+        }
+
+        private void InvalidatePath()
+        {
+            currentPath = null;
+            pathIndex = 0;
+            nextPathUpdate = 0f;
         }
 
         private void Update()
@@ -77,14 +97,30 @@ namespace Jiangshi.Units
             if (dir.sqrMagnitude < 0.1f)
             {
                 moveTarget = null;
+                currentPath = null;
                 visualAnimator?.PlayIdle();
                 return;
             }
 
             var movement = dir.normalized;
+
+            if (UnitCollision.TryGetSeparation(transform.position, this, out var push))
+                movement = (movement + push * 2f).normalized;
+
             visualAnimator?.SetFacing(movement);
             visualAnimator?.PlayWalk();
-            transform.position += movement * Data.moveSpeed * Time.deltaTime;
+
+            if (FollowPath())
+            {
+                return;
+            }
+
+            var nextPos = transform.position + movement * Data.moveSpeed * Time.deltaTime;
+            if (TryMove(nextPos, movement)) return;
+
+            moveTarget = null;
+            currentPath = null;
+            visualAnimator?.PlayIdle();
         }
 
         protected override float GetDeathDestroyDelay()
@@ -139,16 +175,28 @@ namespace Jiangshi.Units
                 return false;
             }
 
-            var direction = lockedAttackTarget.transform.position - transform.position;
+            var targetPos = lockedAttackTarget.transform.position;
+            var direction = targetPos - transform.position;
             direction.y = 0f;
 
             if (direction.sqrMagnitude > Data.attackRange * Data.attackRange)
             {
-                var movement = direction.normalized;
-                visualAnimator?.SetFacing(movement);
+                var attackMovement = direction.normalized;
+                if (UnitCollision.TryGetSeparation(transform.position, this, out var sep))
+                    attackMovement = (attackMovement + sep * 2f).normalized;
+
+                visualAnimator?.SetFacing(attackMovement);
                 visualAnimator?.PlayWalk();
-                transform.position += movement * Data.moveSpeed * Time.deltaTime;
-                return true;
+
+                UpdatePathIfNeeded(targetPos);
+
+                if (FollowPath())
+                {
+                    return true;
+                }
+
+                var attackNextPos = transform.position + attackMovement * Data.moveSpeed * Time.deltaTime;
+                if (TryMove(attackNextPos, attackMovement)) return true;
             }
 
             visualAnimator?.SetFacing(direction);
@@ -162,6 +210,97 @@ namespace Jiangshi.Units
             FireProjectile(lockedAttackTarget);
             nextAttackTime = Time.time + Data.attackInterval;
             return true;
+        }
+
+        private void UpdatePathIfNeeded(Vector3 targetPos)
+        {
+            if (currentPath != null && pathIndex < currentPath.Count && Time.time < nextPathUpdate)
+            {
+                if ((targetPos - lastTargetPos).sqrMagnitude < 1f)
+                {
+                    return;
+                }
+            }
+
+            RecalculatePath(targetPos);
+        }
+
+        private void RecalculatePath(Vector3 targetPos)
+        {
+            lastTargetPos = targetPos;
+            nextPathUpdate = Time.time + 2f;
+            currentPath = PathPlanner.FindPath(GridManager.Instance, transform.position, targetPos);
+            pathIndex = 0;
+        }
+
+        private bool FollowPath()
+        {
+            if (currentPath == null || pathIndex >= currentPath.Count)
+            {
+                return false;
+            }
+
+            var waypoint = currentPath[pathIndex];
+            var toWaypoint = waypoint - transform.position;
+            toWaypoint.y = 0f;
+
+            if (toWaypoint.sqrMagnitude < 0.1f)
+            {
+                pathIndex++;
+                if (pathIndex >= currentPath.Count)
+                {
+                    return false;
+                }
+
+                waypoint = currentPath[pathIndex];
+                toWaypoint = waypoint - transform.position;
+                toWaypoint.y = 0f;
+            }
+
+            var movement = toWaypoint.normalized;
+            visualAnimator?.SetFacing(movement);
+
+            var nextPos = transform.position + movement * Data.moveSpeed * Time.deltaTime;
+            if (TryMove(nextPos, movement))
+            {
+                return true;
+            }
+
+            currentPath = null;
+            return false;
+        }
+
+        private bool TryMove(Vector3 nextPos, Vector3 movement)
+        {
+            if (GridManager.Instance.IsWalkableAt(nextPos))
+            {
+                transform.position = nextPos;
+                return true;
+            }
+
+            if (Mathf.Abs(movement.x) > 0.001f)
+            {
+                var slideX = new Vector3(movement.x, 0f, 0f).normalized;
+                var nextSlide = transform.position + slideX * Data.moveSpeed * Time.deltaTime;
+                if (GridManager.Instance.IsWalkableAt(nextSlide))
+                {
+                    transform.position = nextSlide;
+                    return true;
+                }
+            }
+
+            if (Mathf.Abs(movement.z) > 0.001f)
+            {
+                var slideZ = new Vector3(0f, 0f, movement.z).normalized;
+                var nextSlide = transform.position + slideZ * Data.moveSpeed * Time.deltaTime;
+                if (GridManager.Instance.IsWalkableAt(nextSlide))
+                {
+                    transform.position = nextSlide;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsValidAttackTarget(Damageable target)

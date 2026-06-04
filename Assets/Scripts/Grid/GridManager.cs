@@ -4,6 +4,8 @@ namespace Jiangshi.Grid
 {
     public sealed class GridManager : MonoBehaviour
     {
+        public static GridManager Instance { get; private set; }
+
         [SerializeField] private int width = 128;
         [SerializeField] private int height = 128;
         [SerializeField] private float cellSize = 1f;
@@ -21,6 +23,7 @@ namespace Jiangshi.Grid
 
         private void Awake()
         {
+            Instance = this;
             BuildGrid();
         }
 
@@ -77,6 +80,12 @@ namespace Jiangshi.Grid
                 (position.X + size.x * 0.5f) * cellSize,
                 0f,
                 (position.Y + size.y * 0.5f) * cellSize);
+        }
+
+        public bool IsWalkableAt(Vector3 worldPosition)
+        {
+            var cell = GetCell(WorldToGrid(worldPosition));
+            return cell != null && cell.IsWalkable;
         }
 
         public bool CanOccupy(GridPosition originPosition, Vector2Int size)

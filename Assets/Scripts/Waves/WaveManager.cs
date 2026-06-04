@@ -8,20 +8,34 @@ namespace Jiangshi.Waves
 {
     public sealed class WaveManager : MonoBehaviour
     {
+        public static WaveManager Instance { get; private set; }
+
         [SerializeField] private WaveData[] waves;
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private Transform defaultTarget;
         [SerializeField] private UnitManager unitManager;
         [SerializeField] private GridManager gridManager;
         [SerializeField] private int spawnSearchRadius = 8;
+        [SerializeField] private bool enableCorridorMission;
+        [SerializeField] private int corridorTriggerAfterWave = 2;
+        [SerializeField] private GameObject corridorPortalPrefab;
 
         private float scheduleStartTime;
         private int activeWaveCount;
         private int completedWaveCount;
         private string activeWaveText;
         private WaveData[] orderedWaves;
+        private bool corridorTriggered;
+        private bool portalSpawned;
+        private GameObject portalInstance;
+        private int waveSpawnedAlive;
 
         public string StatusText { get; private set; } = "无波次";
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         private void Start()
         {
@@ -47,11 +61,44 @@ namespace Jiangshi.Waves
         private void Update()
         {
             RefreshStatusText();
+
+            if (!corridorTriggered || portalSpawned)
+                return;
+
+            if (waveSpawnedAlive == 0)
+            {
+                SpawnCorridorPortal();
+            }
+        }
+
+        private float fastForwardTo;
+
+        public void ForceNextWave()
+        {
+            if (orderedWaves == null) return;
+            var elapsed = Time.time - scheduleStartTime;
+            foreach (var wave in orderedWaves)
+            {
+                if (wave.startTime > elapsed)
+                {
+                    fastForwardTo = wave.startTime;
+                    break;
+                }
+            }
         }
 
         private IEnumerator RunWave(WaveData wave)
         {
-            yield return new WaitForSeconds(wave.startTime);
+            var startTime = wave.startTime;
+            while (Time.time - scheduleStartTime < startTime)
+            {
+                if (fastForwardTo >= startTime)
+                {
+                    scheduleStartTime = Time.time - startTime;
+                    break;
+                }
+                yield return null;
+            }
 
             activeWaveCount++;
             activeWaveText = string.IsNullOrWhiteSpace(wave.warningText) ? "波次进行中" : wave.warningText;
@@ -96,6 +143,11 @@ namespace Jiangshi.Waves
             activeWaveCount = Mathf.Max(0, activeWaveCount - 1);
             completedWaveCount++;
             RefreshStatusText();
+
+            if (enableCorridorMission && completedWaveCount == corridorTriggerAfterWave)
+            {
+                corridorTriggered = true;
+            }
         }
 
         private void SpawnEnemy(WaveData wave)
@@ -113,6 +165,8 @@ namespace Jiangshi.Waves
                 zombie.SetTarget(defaultTarget);
                 zombie.SetAggressive();
             }
+
+            TrackWaveUnit(unit);
         }
 
         private void SpawnEnemyFromGroup(WaveData.EnemyGroup group, int directionCount)
@@ -131,6 +185,15 @@ namespace Jiangshi.Waves
                 zombie.SetTarget(defaultTarget);
                 zombie.SetAggressive();
             }
+
+            TrackWaveUnit(unit);
+        }
+
+        private void TrackWaveUnit(Unit unit)
+        {
+            if (unit == null) return;
+            waveSpawnedAlive++;
+            unit.Died += _ => waveSpawnedAlive = Mathf.Max(0, waveSpawnedAlive - 1);
         }
 
         public void SpawnPopulationZombies(Vector3 center, int count)
@@ -239,6 +302,37 @@ namespace Jiangshi.Waves
             }
 
             return null;
+        }
+
+        private void SpawnCorridorPortal()
+        {
+            if (corridorPortalPrefab == null || gridManager == null) return;
+
+            var position = FindRandomWalkablePosition();
+            portalInstance = Instantiate(corridorPortalPrefab, position, Quaternion.identity);
+            portalSpawned = true;
+
+            var hud = FindObjectOfType<Jiangshi.UI.PrototypeHud>();
+            if (hud != null)
+            {
+                hud.ShowPortalAnnouncement("一个传送门出现");
+            }
+        }
+
+        private Vector3 FindRandomWalkablePosition()
+        {
+            for (var attempt = 0; attempt < 200; attempt++)
+            {
+                var x = Random.Range(0, gridManager.Width);
+                var y = Random.Range(0, gridManager.Height);
+                var gp = new GridPosition(x, y);
+                var cell = gridManager.GetCell(gp);
+                if (cell != null && cell.IsWalkable && !cell.IsOccupied)
+                {
+                    return gridManager.GridToWorld(gp);
+                }
+            }
+            return Vector3.zero;
         }
 
         private void RefreshStatusText()

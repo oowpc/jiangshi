@@ -249,6 +249,11 @@ namespace Jiangshi.Building
                     return;
                 }
             }
+
+            if (buildingOptions.Length > 9 && (Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0)))
+            {
+                SelectBuildingOption(9);
+            }
         }
 
         private void HandleRotationInput()
@@ -464,7 +469,7 @@ namespace Jiangshi.Building
 
         private Material CreatePreviewMaterial(string materialName, Color color)
         {
-            var material = new Material(Shader.Find("Standard"))
+            var material = new Material(Shader.Find("Universal Render Pipeline/Lit"))
             {
                 name = materialName,
                 color = color

@@ -655,17 +655,7 @@ namespace Jiangshi.UI
 
         private string FormatCost(ResourceAmount cost)
         {
-            return cost.type switch
-            {
-                ResourceType.Gold => $"金{cost.amount}",
-                ResourceType.Wood => $"木{cost.amount}",
-                ResourceType.Food => $"食{cost.amount}",
-                ResourceType.Power => $"电{cost.amount}",
-                ResourceType.Population => $"人口{cost.amount}",
-                ResourceType.Iron => $"铁{cost.amount}",
-                ResourceType.Copper => $"铜{cost.amount}",
-                _ => $"{cost.amount} {cost.type}"
-            };
+            return $"{cost.type.GetLabel()}{cost.amount}";
         }
 
         private void ShowBuildTooltip(int index)
@@ -734,6 +724,13 @@ namespace Jiangshi.UI
             builder.Append("消耗: ");
             builder.AppendLine(string.IsNullOrEmpty(cost) ? "无" : cost);
 
+            var shortage = FormatShortage(data);
+            if (!string.IsNullOrEmpty(shortage))
+            {
+                builder.Append("缺少: ");
+                builder.AppendLine(shortage);
+            }
+
             builder.Append("产出: ");
             builder.AppendLine(FormatProduction(data));
 
@@ -753,6 +750,39 @@ namespace Jiangshi.UI
             }
 
             return builder.ToString().TrimEnd();
+        }
+
+        private string FormatShortage(BuildingData data)
+        {
+            if (data == null || resourceManager == null) return string.Empty;
+
+            var shortage = new StringBuilder();
+
+            if (data.buildCost != null)
+            {
+                foreach (var cost in data.buildCost)
+                {
+                    var shortageAmount = cost.amount - resourceManager.Get(cost.type);
+                    if (shortageAmount > 0)
+                        shortage.Append($"  {cost.type.GetLabel()}缺{shortageAmount}");
+                }
+            }
+
+            if (data.powerCost > 0)
+            {
+                var powerShortage = data.powerCost - resourceManager.Get(ResourceType.Power);
+                if (powerShortage > 0)
+                    shortage.Append($"  电力缺{powerShortage}");
+            }
+
+            if (data.populationCost > 0)
+            {
+                var popShortage = data.populationCost - resourceManager.Get(ResourceType.Population);
+                if (popShortage > 0)
+                    shortage.Append($"  人口缺{popShortage}");
+            }
+
+            return shortage.Length > 0 ? shortage.ToString() : string.Empty;
         }
 
         private string FormatProduction(BuildingData data)
@@ -926,6 +956,58 @@ namespace Jiangshi.UI
             }
         }
 
+        private Text portalAnnouncementText;
+        private Coroutine portalAnnouncementRoutine;
+
+        public void ShowPortalAnnouncement(string text)
+        {
+            EnsurePortalAnnouncement();
+
+            if (portalAnnouncementText == null) return;
+
+            if (portalAnnouncementRoutine != null)
+                StopCoroutine(portalAnnouncementRoutine);
+
+            portalAnnouncementText.text = text;
+            portalAnnouncementText.gameObject.SetActive(true);
+            portalAnnouncementRoutine = StartCoroutine(HidePortalAnnouncementAfterDelay(4f));
+        }
+
+        private void EnsurePortalAnnouncement()
+        {
+            if (portalAnnouncementText != null) return;
+
+            var obj = new GameObject("Portal Announcement");
+            obj.transform.SetParent(transform, false);
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(0f, 120f);
+            rect.sizeDelta = new Vector2(600f, 80f);
+
+            portalAnnouncementText = obj.AddComponent<Text>();
+            portalAnnouncementText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            portalAnnouncementText.fontSize = 48;
+            portalAnnouncementText.alignment = TextAnchor.MiddleCenter;
+            portalAnnouncementText.color = new Color(0.3f, 0.95f, 1f, 1f);
+            portalAnnouncementText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            portalAnnouncementText.verticalOverflow = VerticalWrapMode.Overflow;
+
+            var outline = obj.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.8f);
+            outline.effectDistance = new Vector2(2f, -2f);
+
+            obj.SetActive(false);
+        }
+
+        private System.Collections.IEnumerator HidePortalAnnouncementAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (portalAnnouncementText != null)
+                portalAnnouncementText.gameObject.SetActive(false);
+        }
+
         private void EnsureBuildTooltipUi()
         {
             if (buildTooltipPanel != null)
@@ -1060,7 +1142,7 @@ namespace Jiangshi.UI
             CreateRuntimeText(
                 guidePanel.transform,
                 "Guide Body",
-                "目标\n守住指挥基地直到倒计时结束。\n\n建造\n数字键 1-9/0 或右侧按钮选择建筑，左键放置，右键或 Esc 取消。城墙可按 Tab 旋转，绿色预览表示可放置，红色表示不可放置。\n\n资源\n木屋、伐木场、农场、电厂和矿场提供资源。注意电力、人口和建造材料，资源不足时按钮会变暗。\n\n战斗\n兵工厂训练士兵和剑客。士兵远程开枪，剑客近战拦截。箭塔会自动攻击进入范围的僵尸。\n\n操作\nP 暂停或继续；点击建筑可查看拆除返还，核心建筑不能拆除。",
+                "目标\n守住指挥基地直到倒计时结束。第2波后会出现传送门，派人调查走廊可改变战局。\n\n视野\nWASD 或鼠标移到屏幕边缘移动视野，滚轮缩放。\n\n建造\n数字键 1-9/0 或右侧按钮选择建筑，左键放置，右键或 Esc 取消。城墙可按 Tab 旋转。鼠标悬停按钮可查看消耗和缺少的资源。\n\n资源\n木屋、伐木场、农场、电厂和矿场提供资源。电力不足建筑停摆，人口靠木屋提供，资源不够时按钮变暗。\n\n战斗\n兵工厂训练士兵和剑客。左键拖拽可框选多个单位，右键点敌人攻击、右键点地面移动。士兵远程开枪，剑客近战拦截，单位会自动绕过湖泊和树林。箭塔自动攻击范围内的敌人。\n\n操作\nP 暂停或继续；打开设置时自动暂停。点击建筑可查看拆除返还，核心建筑不能拆除。",
                 18,
                 new Vector2(0f, 4f),
                 new Vector2(540f, 300f),

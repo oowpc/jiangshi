@@ -10,6 +10,7 @@ namespace Jiangshi.UI
         [SerializeField] private float maxOrthographicSize = 28f;
         [SerializeField] private Vector2 xBounds = new Vector2(-8f, 136f);
         [SerializeField] private Vector2 zBounds = new Vector2(-32f, 136f);
+        [SerializeField] private float edgeScrollMargin = 0.03f;
 
         private Camera controlledCamera;
 
@@ -27,6 +28,16 @@ namespace Jiangshi.UI
         private void Move()
         {
             var input = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+
+            var mousePos = Input.mousePosition;
+            var mouseX = mousePos.x / Screen.width;
+            var mouseY = mousePos.y / Screen.height;
+
+            if (mouseX <= edgeScrollMargin) input.x = -1f;
+            if (mouseX >= 1f - edgeScrollMargin) input.x = 1f;
+            if (mouseY <= edgeScrollMargin) input.z = -1f;
+            if (mouseY >= 1f - edgeScrollMargin) input.z = 1f;
+
             if (input.sqrMagnitude <= 0f)
             {
                 return;

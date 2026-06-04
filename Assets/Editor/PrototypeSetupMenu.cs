@@ -185,6 +185,7 @@ namespace Jiangshi.Editor
             var flowField = systems.AddComponent<Jiangshi.Pathfinding.FlowField>();
             var unitCommand = systems.AddComponent<Jiangshi.Units.UnitCommandController>();
             systems.AddComponent<Jiangshi.UI.TrainingPanel>();
+            systems.AddComponent<Jiangshi.UI.DebugController>();
 
             _ = gameManager;
             _ = gridManager;
@@ -242,6 +243,11 @@ namespace Jiangshi.Editor
             SetObjectReference(waveManager, "defaultTarget", commandBase.transform);
             SetObjectArray(waveManager, "spawnPoints", spawnPoints);
             SetObjectArray(waveManager, "waves", new Object[] { wave01, wave02, wave03, wave04 });
+            SetBool(waveManager, "enableCorridorMission", true);
+            SetInt(waveManager, "corridorTriggerAfterWave", 2);
+
+            var corridorPortalPrefab = CreateCorridorPortalPrefab();
+            SetObjectReference(waveManager, "corridorPortalPrefab", corridorPortalPrefab);
 
             var forestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabRoot}/Forest.prefab");
             var ironOrePrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabRoot}/IronOre.prefab");
@@ -409,6 +415,30 @@ namespace Jiangshi.Editor
             }
 
             return commandBase;
+        }
+
+        private static GameObject CreateCorridorPortalPrefab()
+        {
+            var path = $"{PrefabRoot}/CorridorPortal.prefab";
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (existing != null)
+            {
+                AssetDatabase.DeleteAsset(path);
+            }
+
+            var instance = new GameObject("CorridorPortal");
+            instance.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            var sr = instance.AddComponent<SpriteRenderer>();
+            sr.sprite = SpriteFactory.CreateColorSprite("Portal", new Color(0.3f, 0.9f, 1f, 0.7f), 64);
+            sr.sortingOrder = 100;
+            instance.transform.localScale = new Vector3(2f, 2f, 1f);
+            var collider = instance.AddComponent<SphereCollider>();
+            collider.isTrigger = true;
+            collider.radius = 0.5f;
+            var rb = instance.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            instance.AddComponent<Jiangshi.Units.CorridorPortal>();
+            return SavePrefab(instance, path);
         }
 
         private static void EnsureFolders()
@@ -617,7 +647,7 @@ namespace Jiangshi.Editor
                 return;
             }
 
-            var material = new Material(Shader.Find("Standard"))
+            var material = new Material(Shader.Find("Universal Render Pipeline/Lit"))
             {
                 color = color
             };
@@ -1176,6 +1206,14 @@ namespace Jiangshi.Editor
             var serializedObject = new SerializedObject(target);
             var property = serializedObject.FindProperty(propertyName);
             property.intValue = value;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetBool(Object target, string propertyName, bool value)
+        {
+            var serializedObject = new SerializedObject(target);
+            var property = serializedObject.FindProperty(propertyName);
+            property.boolValue = value;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 

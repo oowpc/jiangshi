@@ -2,7 +2,9 @@
   "name": "Jiangshi.Editor",
   "rootNamespace": "Jiangshi.Editor",
   "references": [
-    "Jiangshi.Runtime"
+    "Jiangshi.Runtime",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.TextMeshPro"
   ],
   "includePlatforms": [
     "Editor"

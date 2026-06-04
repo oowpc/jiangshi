@@ -16,6 +16,7 @@ namespace Jiangshi.Core
         [SerializeField] private int terrainSortingOrder = -5;
         [SerializeField] private float tileOverlap = 0.005f;
         [SerializeField] private int seed;
+        [SerializeField] private int baseClearRadius = 8;
 
         [Header("Tilesets (3x3 = 9 sprites, order: TL,T,TR,L,C,R,BL,B,BR)")]
         [SerializeField] private Sprite[] grassTileset;
@@ -83,6 +84,26 @@ namespace Jiangshi.Core
                         {
                             cell.IsWalkable = false;
                             cell.IsBuildable = false;
+                        }
+                    }
+                }
+            }
+
+            var cx = w / 2;
+            var cy = h / 2;
+            for (var x = cx - baseClearRadius; x <= cx + baseClearRadius; x++)
+            {
+                for (var y = cy - baseClearRadius; y <= cy + baseClearRadius; y++)
+                {
+                    if (x < 0 || y < 0 || x >= w || y >= h) continue;
+                    if (terrainMap[x, y] == TerrainType.Water)
+                    {
+                        terrainMap[x, y] = TerrainType.Grass;
+                        var cell = gridManager.GetCell(new GridPosition(x, y));
+                        if (cell != null)
+                        {
+                            cell.IsWalkable = true;
+                            cell.IsBuildable = true;
                         }
                     }
                 }

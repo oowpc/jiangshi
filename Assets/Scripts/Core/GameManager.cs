@@ -13,6 +13,9 @@ namespace Jiangshi.Core
         public GameState State { get; private set; }
         public event Action<GameState> StateChanged;
 
+        public static float CorridorDifficultyMultiplier { get; private set; } = 1f;
+        public static string CorridorResultMessage { get; private set; } = "";
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -27,7 +30,29 @@ namespace Jiangshi.Core
 
         private void Start()
         {
+            ApplyCorridorResult();
             SetState(initialState);
+        }
+
+        private void ApplyCorridorResult()
+        {
+            switch (MissionResultState.Result)
+            {
+                case MissionResult.SerumAcquired:
+                    CorridorDifficultyMultiplier = 0.7f;
+                    CorridorResultMessage = "血清原液已投放，异常生物质正在消退。";
+                    break;
+                case MissionResult.OperatorLost:
+                    CorridorDifficultyMultiplier = 1.5f;
+                    CorridorResultMessage = "操作者失联，未取得血清原液。";
+                    break;
+                default:
+                    CorridorDifficultyMultiplier = 1f;
+                    CorridorResultMessage = "";
+                    break;
+            }
+
+            MissionResultState.Result = MissionResult.None;
         }
 
         public void SetState(GameState nextState)

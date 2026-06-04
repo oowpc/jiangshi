@@ -1,7 +1,9 @@
 {
   "name": "Jiangshi.Runtime",
   "rootNamespace": "Jiangshi",
-  "references": [],
+  "references": [
+    "Unity.TextMeshPro"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
