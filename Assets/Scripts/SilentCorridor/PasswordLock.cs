@@ -26,6 +26,9 @@ public class PasswordLock : MonoBehaviour, IInteractable
 
     void Start()
     {
+        if (chaser == null)
+            chaser = FindObjectOfType<Chaser>(true);
+
         passwordPanel.SetActive(false);
         if (endPanel != null) endPanel.SetActive(false);
     }
@@ -72,10 +75,12 @@ public class PasswordLock : MonoBehaviour, IInteractable
         if (inputField.text == correctPassword)
         {
             solved = true;
+            MissionResultState.Result = MissionResult.SerumAcquired;
             feedbackText.text = "";
 
-            // 停止追逐者
-            if (chaser != null) chaser.StopChase();
+            // 停止所有追逐者；合并场景后 Inspector 引用可能丢失。
+            foreach (var activeChaser in FindObjectsOfType<Chaser>(true))
+                activeChaser.StopChase();
 
             // 停止所有音效
             foreach (var src in FindObjectsOfType<AudioSource>())

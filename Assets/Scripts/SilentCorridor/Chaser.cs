@@ -33,6 +33,9 @@ public class Chaser : MonoBehaviour
     /// </summary>
     public void StartChase()
     {
+        if (MissionResultState.Result == MissionResult.SerumAcquired)
+            return;
+
         gameObject.SetActive(true);
         isChasing = true;
 
@@ -56,6 +59,8 @@ public class Chaser : MonoBehaviour
     public void StopChase()
     {
         isChasing = false;
+        CancelInvoke(nameof(ShowDeath));
+        if (jumpscarePanel != null) jumpscarePanel.SetActive(false);
         if (chaseBGMSource != null) chaseBGMSource.Stop();
         gameObject.SetActive(false);
     }
@@ -94,6 +99,7 @@ public class Chaser : MonoBehaviour
 
     void TriggerJumpscare()
     {
+        if (MissionResultState.Result == MissionResult.SerumAcquired) return;
         if (isDead) return;
         isDead = true;
         isChasing = false;
@@ -119,6 +125,8 @@ public class Chaser : MonoBehaviour
 
     void ShowDeath()
     {
+        if (MissionResultState.Result == MissionResult.SerumAcquired) return;
+
         MissionResultState.Result = MissionResult.OperatorLost;
 
         if (jumpscarePanel != null) jumpscarePanel.SetActive(false);

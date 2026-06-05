@@ -26,6 +26,9 @@ public class LookBackKill : MonoBehaviour
     /// </summary>
     public void Activate()
     {
+        if (MissionResultState.Result == MissionResult.SerumAcquired)
+            return;
+
         isActive = true;
         if (ghostBehind != null)
             ghostBehind.SetActive(true);
@@ -33,6 +36,7 @@ public class LookBackKill : MonoBehaviour
 
     void Update()
     {
+        if (MissionResultState.Result == MissionResult.SerumAcquired) return;
         if (!isActive || isDead) return;
 
         // 检测玩家是否面朝身后的鬼（点积为正说明面朝它）
@@ -54,6 +58,8 @@ public class LookBackKill : MonoBehaviour
 
     void TriggerDeath()
     {
+        if (MissionResultState.Result == MissionResult.SerumAcquired) return;
+
         isDead = true;
         MissionResultState.Result = MissionResult.OperatorLost;
 

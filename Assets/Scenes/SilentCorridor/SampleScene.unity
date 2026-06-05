@@ -192,7 +192,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -672,12 +672,12 @@ MonoBehaviour:
   hintText: {fileID: 1725652500}
   notifyText: {fileID: 1876732142}
   messages:
-  - "<b>基地指挥</b>  23:42\n通讯确认。请报告走廊内部情况，基地防御压力增大。"
-  - "<b>医疗兵-陈静</b>  00:08\n收到你发回的档案照片，正在分析。你先别动，等我们找出血清方案。"
-  - "<b>未知信号</b>  00:27\n你走不出去了。"
-  - "<b>基地指挥</b>  00:50\n走廊尽头那扇门，你找到没有？攻势越来越猛，我们需要血清原液。"
-  - "<b>医疗兵-陈静</b>  01:15\n分析完了。血清配方在原实验体的收容区内。密码锁......你应该能拼出来。"
-  - "<b>未知信号</b>  01:33\n别开门。\n\n门一开，我们就自由了。\n\n你不想让我们出去的。"
+  - "<b>\u57FA\u5730\u6307\u6325</b>  23:42\n\u901A\u8BAF\u786E\u8BA4\u3002\u8BF7\u62A5\u544A\u8D70\u5ECA\u5185\u90E8\u60C5\u51B5\uFF0C\u57FA\u5730\u9632\u5FA1\u538B\u529B\u589E\u5927\u3002"
+  - "<b>\u533B\u7597\u5175-\u9648\u9759</b>  00:08\n\u6536\u5230\u4F60\u53D1\u56DE\u7684\u6863\u6848\u7167\u7247\uFF0C\u6B63\u5728\u5206\u6790\u3002\u4F60\u5148\u522B\u52A8\uFF0C\u7B49\u6211\u4EEC\u627E\u51FA\u8840\u6E05\u65B9\u6848\u3002"
+  - "<b>\u672A\u77E5\u4FE1\u53F7</b>  00:27\n\u4F60\u8D70\u4E0D\u51FA\u53BB\u4E86\u3002"
+  - "<b>\u57FA\u5730\u6307\u6325</b>  00:50\n\u8D70\u5ECA\u5C3D\u5934\u90A3\u6247\u95E8\uFF0C\u4F60\u627E\u5230\u6CA1\u6709\uFF1F\u653B\u52BF\u8D8A\u6765\u8D8A\u731B\uFF0C\u6211\u4EEC\u9700\u8981\u8840\u6E05\u539F\u6DB2\u3002"
+  - "<b>\u533B\u7597\u5175-\u9648\u9759</b>  01:15\n\u5206\u6790\u5B8C\u4E86\u3002\u8840\u6E05\u914D\u65B9\u5728\u539F\u5B9E\u9A8C\u4F53\u7684\u6536\u5BB9\u533A\u5185\u3002\u5BC6\u7801\u9501......\u4F60\u5E94\u8BE5\u80FD\u62FC\u51FA\u6765\u3002"
+  - "<b>\u672A\u77E5\u4FE1\u53F7</b>  01:33\n\u522B\u5F00\u95E8\u3002\n\n\u95E8\u4E00\u5F00\uFF0C\u6211\u4EEC\u5C31\u81EA\u7531\u4E86\u3002\n\n\u4F60\u4E0D\u60F3\u8BA9\u6211\u4EEC\u51FA\u53BB\u7684\u3002"
 --- !u!1 &269518197
 GameObject:
   m_ObjectHideFlags: 0
@@ -922,8 +922,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Sample text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
+  m_sharedMaterial: {fileID: -7918078682198169464, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1012,7 +1012,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  - {fileID: -7918078682198169464, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2356,8 +2356,8 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 100
-  m_Range: 4
+  m_Intensity: 35
+  m_Range: 3.2
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -2776,7 +2776,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2911,7 +2911,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -3419,12 +3419,19 @@ MonoBehaviour:
   diaryText: {fileID: 1802895664}
   pageText: {fileID: 1441557333}
   pages:
-  - "记录一\n\n基地检测到走廊方向有异常的生物质信号。队长派我进去查。\n\n穿过那扇门之后，我走了一圈，又回到了起点。空间像被折叠了。我在墙上刻了一道记号。这是第 1 次。"
-  - "记录二\n\n墙上的旧标记已经被人反复划过。分不清之前有多少人来过这里。\n\n在 407 房找到了一些被撕掉大半的实验档案。能拼起来的只有一条：实验代号「1」号计划--针对某种未知病原体的收容实验。\n\n后面全被撕了。只能等下一轮看看有没有其他房间能进。"
-  - "记录三\n\n听到了脚步声。不是我的。我停下来，它也停。\n\n走廊尽头有一扇门上锁了，需要四位数密码。门旁边有个金属铭牌，锈得厉害，但上面有一行：「样本采集日期：-- 月 9 日」。\n\n墙上不知谁写着：不要回头。"
-  - "记录四\n\n灯开始闪了。灭掉的时候能看到那个黑影，比以前近了。\n\n又翻到一页档案：实验体共 5 例。前四例在接触后 72 小时内全部异变死亡。第五例的情况被涂掉了，只留了半句话「......失控，收容区封锁」。\n\n我觉得我背后的东西，就是第五例。"
-  - "记录五\n\n它开始跟我说话了。墙里面传出来的。\n\n「外面的人已经都变成了我们。你守不住了。」\n\n我找到铭牌的另一块残片，拼上去后补全了日期：-- 月 9 日，-- 号房，-- 时 58 分。\n\n密码的线索在逐渐拼起来了。但如果我现在回头看一眼的话，也许能看得更快......\n\n不。绝对不能回头。"
-  - "记录六\n\n它过来了。\n\n实验代号 1。9 月采集。5 例实验体。58 分失控。\n\n密码是 1958。\n\n如果你能打开那扇门，进去把收容锁关掉--替我们所有人结束这一切。\n\n我要走了。它在看我。\n\n对不起，队长。"
+  - "\u8BB0\u5F55\u4E00\n\n\u57FA\u5730\u68C0\u6D4B\u5230\u8D70\u5ECA\u65B9\u5411\u6709\u5F02\u5E38\u7684\u751F\u7269\u8D28\u4FE1\u53F7\u3002\u961F\u957F\u6D3E\u6211\u8FDB\u53BB\u67E5\u3002\n\n\u7A7F\u8FC7\u90A3\u6247\u95E8\u4E4B\u540E\uFF0C\u6211\u8D70\u4E86\u4E00\u5708\uFF0C\u53C8\u56DE\u5230\u4E86\u8D77\u70B9\u3002\u7A7A\u95F4\u50CF\u88AB\u6298\u53E0\u4E86\u3002\u6211\u5728\u5899\u4E0A\u523B\u4E86\u4E00\u9053\u8BB0\u53F7\u3002\u8FD9\u662F\u7B2C
+    1 \u6B21\u3002"
+  - "\u8BB0\u5F55\u4E8C\n\n\u5899\u4E0A\u7684\u65E7\u6807\u8BB0\u5DF2\u7ECF\u88AB\u4EBA\u53CD\u590D\u5212\u8FC7\u3002\u5206\u4E0D\u6E05\u4E4B\u524D\u6709\u591A\u5C11\u4EBA\u6765\u8FC7\u8FD9\u91CC\u3002\n\n\u5728
+    407 \u623F\u627E\u5230\u4E86\u4E00\u4E9B\u88AB\u6495\u6389\u5927\u534A\u7684\u5B9E\u9A8C\u6863\u6848\u3002\u80FD\u62FC\u8D77\u6765\u7684\u53EA\u6709\u4E00\u6761\uFF1A\u5B9E\u9A8C\u4EE3\u53F7\u300C1\u300D\u53F7\u8BA1\u5212--\u9488\u5BF9\u67D0\u79CD\u672A\u77E5\u75C5\u539F\u4F53\u7684\u6536\u5BB9\u5B9E\u9A8C\u3002\n\n\u540E\u9762\u5168\u88AB\u6495\u4E86\u3002\u53EA\u80FD\u7B49\u4E0B\u4E00\u8F6E\u770B\u770B\u6709\u6CA1\u6709\u5176\u4ED6\u623F\u95F4\u80FD\u8FDB\u3002"
+  - "\u8BB0\u5F55\u4E09\n\n\u542C\u5230\u4E86\u811A\u6B65\u58F0\u3002\u4E0D\u662F\u6211\u7684\u3002\u6211\u505C\u4E0B\u6765\uFF0C\u5B83\u4E5F\u505C\u3002\n\n\u8D70\u5ECA\u5C3D\u5934\u6709\u4E00\u6247\u95E8\u4E0A\u9501\u4E86\uFF0C\u9700\u8981\u56DB\u4F4D\u6570\u5BC6\u7801\u3002\u95E8\u65C1\u8FB9\u6709\u4E2A\u91D1\u5C5E\u94ED\u724C\uFF0C\u9508\u5F97\u5389\u5BB3\uFF0C\u4F46\u4E0A\u9762\u6709\u4E00\u884C\uFF1A\u300C\u6837\u672C\u91C7\u96C6\u65E5\u671F\uFF1A--
+    \u6708 9 \u65E5\u300D\u3002\n\n\u5899\u4E0A\u4E0D\u77E5\u8C01\u5199\u7740\uFF1A\u4E0D\u8981\u56DE\u5934\u3002"
+  - "\u8BB0\u5F55\u56DB\n\n\u706F\u5F00\u59CB\u95EA\u4E86\u3002\u706D\u6389\u7684\u65F6\u5019\u80FD\u770B\u5230\u90A3\u4E2A\u9ED1\u5F71\uFF0C\u6BD4\u4EE5\u524D\u8FD1\u4E86\u3002\n\n\u53C8\u7FFB\u5230\u4E00\u9875\u6863\u6848\uFF1A\u5B9E\u9A8C\u4F53\u5171
+    5 \u4F8B\u3002\u524D\u56DB\u4F8B\u5728\u63A5\u89E6\u540E 72 \u5C0F\u65F6\u5185\u5168\u90E8\u5F02\u53D8\u6B7B\u4EA1\u3002\u7B2C\u4E94\u4F8B\u7684\u60C5\u51B5\u88AB\u6D82\u6389\u4E86\uFF0C\u53EA\u7559\u4E86\u534A\u53E5\u8BDD\u300C......\u5931\u63A7\uFF0C\u6536\u5BB9\u533A\u5C01\u9501\u300D\u3002\n\n\u6211\u89C9\u5F97\u6211\u80CC\u540E\u7684\u4E1C\u897F\uFF0C\u5C31\u662F\u7B2C\u4E94\u4F8B\u3002"
+  - "\u8BB0\u5F55\u4E94\n\n\u5B83\u5F00\u59CB\u8DDF\u6211\u8BF4\u8BDD\u4E86\u3002\u5899\u91CC\u9762\u4F20\u51FA\u6765\u7684\u3002\n\n\u300C\u5916\u9762\u7684\u4EBA\u5DF2\u7ECF\u90FD\u53D8\u6210\u4E86\u6211\u4EEC\u3002\u4F60\u5B88\u4E0D\u4F4F\u4E86\u3002\u300D\n\n\u6211\u627E\u5230\u94ED\u724C\u7684\u53E6\u4E00\u5757\u6B8B\u7247\uFF0C\u62FC\u4E0A\u53BB\u540E\u8865\u5168\u4E86\u65E5\u671F\uFF1A--
+    \u6708 9 \u65E5\uFF0C-- \u53F7\u623F\uFF0C-- \u65F6 58 \u5206\u3002\n\n\u5BC6\u7801\u7684\u7EBF\u7D22\u5728\u9010\u6E10\u62FC\u8D77\u6765\u4E86\u3002\u4F46\u5982\u679C\u6211\u73B0\u5728\u56DE\u5934\u770B\u4E00\u773C\u7684\u8BDD\uFF0C\u4E5F\u8BB8\u80FD\u770B\u5F97\u66F4\u5FEB......\n\n\u4E0D\u3002\u7EDD\u5BF9\u4E0D\u80FD\u56DE\u5934\u3002"
+  - "\u8BB0\u5F55\u516D\n\n\u5B83\u8FC7\u6765\u4E86\u3002\n\n\u5B9E\u9A8C\u4EE3\u53F7
+    1\u30029 \u6708\u91C7\u96C6\u30025 \u4F8B\u5B9E\u9A8C\u4F53\u300258 \u5206\u5931\u63A7\u3002\n\n\u5BC6\u7801\u662F
+    1958\u3002\n\n\u5982\u679C\u4F60\u80FD\u6253\u5F00\u90A3\u6247\u95E8\uFF0C\u8FDB\u53BB\u628A\u6536\u5BB9\u9501\u5173\u6389--\u66FF\u6211\u4EEC\u6240\u6709\u4EBA\u7ED3\u675F\u8FD9\u4E00\u5207\u3002\n\n\u6211\u8981\u8D70\u4E86\u3002\u5B83\u5728\u770B\u6211\u3002\n\n\u5BF9\u4E0D\u8D77\uFF0C\u961F\u957F\u3002"
   chaser: {fileID: 393357880}
   chaseOnPage: 5
 --- !u!1 &916224814
@@ -3602,7 +3609,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -4064,7 +4071,7 @@ MonoBehaviour:
   inputField: {fileID: 1855447593}
   feedbackText: {fileID: 901106250}
   endPanel: {fileID: 665553450}
-  chaser: {fileID: 0}
+  chaser: {fileID: 393357880}
 --- !u!1 &1060348341
 GameObject:
   m_ObjectHideFlags: 0
@@ -4489,8 +4496,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u200B"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
+  m_sharedMaterial: {fileID: -7918078682198169464, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4605,7 +4612,7 @@ MonoBehaviour:
   m_text: New Text
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
-  m_sharedMaterial: {fileID: -6593029964377717154, guid: 74bd2510ab1d92043b07acfcca81187a, type: 2}
+  m_sharedMaterial: {fileID: -7918078682198169464, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4768,7 +4775,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -4968,8 +4975,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u64CD\u4F5C\u8005\u5931\u8054\n\u672A\u53D6\u5F97\u8840\u6E05\u539F\u6DB2"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
+  m_sharedMaterial: {fileID: -7918078682198169464, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -5218,7 +5225,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -5317,8 +5324,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.3, y: 0}
   m_AnchorMax: {x: 0.7, y: 0.08}
-  m_AnchoredPosition: {x: 0, y: 253}
-  m_SizeDelta: {x: 20, y: 6}
+  m_AnchoredPosition: {x: 0, y: 8}
+  m_SizeDelta: {x: 100, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1441557333
 MonoBehaviour:
@@ -5342,8 +5349,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
+  m_sharedMaterial: {fileID: -7918078682198169464, guid: 4368dfc53b0152348bb3d93cf2555dec, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -5964,7 +5971,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
