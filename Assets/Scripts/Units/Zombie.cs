@@ -60,13 +60,7 @@ namespace Jiangshi.Units
 
         public override void Initialize(UnitData unitData)
         {
-            var multiplier = Core.GameManager.CorridorDifficultyMultiplier;
             base.Initialize(unitData);
-            var damageable = GetComponent<Damageable>();
-            if (Mathf.Abs(multiplier - 1f) > 0.001f)
-            {
-                damageable.SetMaxHealth(Mathf.RoundToInt(unitData.maxHealth * multiplier), true);
-            }
         }
 
         private Vector3 GetMovementDirection()
@@ -174,11 +168,7 @@ namespace Jiangshi.Units
         }
 
         private float GetMoveSpeed() => Data != null ? Data.moveSpeed : moveSpeed;
-        private int GetAttackDamage()
-        {
-            var baseDamage = Data != null ? Data.attackDamage : attackDamage;
-            return Mathf.RoundToInt(baseDamage * Core.GameManager.CorridorDifficultyMultiplier);
-        }
+        private int GetAttackDamage() => Data != null ? Data.attackDamage : attackDamage;
         private float GetAttackRange() => Data != null ? Data.attackRange : attackRange;
         private float GetAttackInterval() => Data != null ? Data.attackInterval : attackInterval;
     }

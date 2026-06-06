@@ -14,7 +14,8 @@ namespace Jiangshi.Units
             var factionMember = unit.GetComponentInParent<FactionMember>();
             if (factionMember == null || factionMember.Faction != Faction.Player) return;
 
-            SceneManager.LoadScene("SampleScene");
+            Time.timeScale = 0f;
+            SceneManager.LoadScene("SampleScene", LoadSceneMode.Additive);
         }
     }
 }

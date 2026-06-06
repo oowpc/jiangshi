@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 密码锁：最后一轮按E弹出输入界面，输入正确密码取得血清原液
@@ -18,6 +17,7 @@ public class PasswordLock : MonoBehaviour, IInteractable
     public TextMeshProUGUI feedbackText;    // 反馈文字
 
     [Header("任务完成")]
+    public GameObject doorToOpen;           // 密码正确后打开的门
     public GameObject endPanel;             // 任务完成画面（白色渐变+文字）
     public Chaser chaser;                   // 拖入追逐者
 
@@ -75,19 +75,15 @@ public class PasswordLock : MonoBehaviour, IInteractable
         if (inputField.text == correctPassword)
         {
             solved = true;
-            MissionResultState.Result = MissionResult.SerumAcquired;
-            feedbackText.text = "";
+            feedbackText.text = "门已打开";
 
-            // 停止所有追逐者；合并场景后 Inspector 引用可能丢失。
+            if (doorToOpen != null)
+                doorToOpen.SetActive(false);
+
             foreach (var activeChaser in FindObjectsOfType<Chaser>(true))
                 activeChaser.StopChase();
 
-            // 停止所有音效
-            foreach (var src in FindObjectsOfType<AudioSource>())
-                src.Stop();
-
             ClosePanel();
-            Invoke(nameof(ShowMissionSuccess), 1f);
         }
         else
         {
@@ -96,25 +92,5 @@ public class PasswordLock : MonoBehaviour, IInteractable
             inputField.text = "";
             inputField.ActivateInputField();
         }
-    }
-
-    void ShowMissionSuccess()
-    {
-        MissionResultState.Result = MissionResult.SerumAcquired;
-
-        if (endPanel != null)
-        {
-            endPanel.SetActive(true);
-            TextMeshProUGUI resultText = endPanel.GetComponentInChildren<TextMeshProUGUI>(true);
-            if (resultText != null)
-                resultText.text = "血清原液已取得\n任务完成，正在返回基地";
-        }
-
-        Invoke(nameof(ReturnToDefenseScene), 3f);
-    }
-
-    void ReturnToDefenseScene()
-    {
-        SceneManager.LoadScene("Prototype");
     }
 }
