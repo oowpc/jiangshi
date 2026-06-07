@@ -10,6 +10,7 @@ namespace Jiangshi.Units
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private int attackDamage = 6;
         [SerializeField] private float attackRange = 1.2f;
+        [SerializeField] private float targetAttackReachPadding = 0.75f;
         [SerializeField] private float attackInterval = 1.1f;
         [SerializeField] private LayerMask attackMask = -1;
         [SerializeField] private int maxOverlapHits = 64;
@@ -156,7 +157,7 @@ namespace Jiangshi.Units
                 var factionMember = damageable.GetComponentInParent<FactionMember>();
                 if (factionMember == null || factionMember.Faction != Faction.Player) continue;
 
-                var distance = Vector3.SqrMagnitude(damageable.transform.position - transform.position);
+                var distance = GetDistanceSqrToDamageable(damageable);
                 if (distance < closestDistance)
                 {
                     closest = damageable;
@@ -164,7 +165,62 @@ namespace Jiangshi.Units
                 }
             }
 
-            return closest;
+            if (closest != null)
+            {
+                return closest;
+            }
+
+            return TryGetAssignedTargetInReach(out var assignedTarget) ? assignedTarget : null;
+        }
+
+        private bool TryGetAssignedTargetInReach(out Damageable damageable)
+        {
+            damageable = null;
+            if (target == null)
+            {
+                return false;
+            }
+
+            damageable = target.GetComponentInParent<Damageable>();
+            if (damageable == null || damageable.IsDead)
+            {
+                return false;
+            }
+
+            var factionMember = damageable.GetComponentInParent<FactionMember>();
+            if (factionMember == null || factionMember.Faction != Faction.Player)
+            {
+                return false;
+            }
+
+            var reach = GetAttackRange() + Mathf.Max(0f, targetAttackReachPadding);
+            return GetDistanceSqrToDamageable(damageable) <= reach * reach;
+        }
+
+        private float GetDistanceSqrToDamageable(Damageable damageable)
+        {
+            var position = transform.position;
+            var closestDistance = float.MaxValue;
+            var colliders = damageable.GetComponentsInChildren<Collider>();
+
+            foreach (var targetCollider in colliders)
+            {
+                if (targetCollider == null || !targetCollider.enabled || targetCollider.isTrigger)
+                {
+                    continue;
+                }
+
+                var closestPoint = targetCollider.ClosestPoint(position);
+                var distance = Vector3.SqrMagnitude(closestPoint - position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                }
+            }
+
+            return closestDistance < float.MaxValue
+                ? closestDistance
+                : Vector3.SqrMagnitude(damageable.transform.position - position);
         }
 
         private float GetMoveSpeed() => Data != null ? Data.moveSpeed : moveSpeed;

@@ -13,18 +13,27 @@ namespace Jiangshi.Core
 {
     public sealed class GameManager : MonoBehaviour
     {
+        private const string DefaultDefeatMusicResource = "Audio/Prototype/DefeatTheme";
+        private const string DefaultSerumVictoryMusicResource = "Audio/Prototype/SerumVictoryTheme";
+
         public static GameManager Instance { get; private set; }
 
         [SerializeField] private GameState initialState = GameState.Playing;
         [SerializeField] private GameObject serumPlacementEffect;
         [SerializeField] private int operatorLostZombieCount = 200;
         [SerializeField] private int operatorLostSpawnDirections = 4;
+        [SerializeField] private AudioClip defeatMusicClip;
+        [SerializeField, Range(0f, 1f)] private float defeatMusicVolume = 0.8f;
+        [SerializeField] private AudioClip serumVictoryMusicClip;
+        [SerializeField, Range(0f, 1f)] private float serumVictoryMusicVolume = 0.85f;
 
         public GameState State { get; private set; }
         public event Action<GameState> StateChanged;
 
         private Camera cachedMainCamera;
         private bool serumPlacementMode;
+        private AudioSource defeatAudioSource;
+        private AudioSource serumVictoryAudioSource;
 
         private void Awake()
         {
@@ -40,6 +49,11 @@ namespace Jiangshi.Core
 
         private void Start()
         {
+            GameAudioSettings.ApplySavedMasterVolume();
+            GameDisplaySettings.ApplySavedWindowMode();
+            EnsureDefeatAudioSource();
+            EnsureSerumVictoryAudioSource();
+            ResetCursorForDefenseScene();
             cachedMainCamera = Camera.main;
             ApplyCorridorResult();
             SetState(initialState);
@@ -67,6 +81,18 @@ namespace Jiangshi.Core
                 case MissionResult.OperatorLost:
                     TriggerOperatorLost();
                     break;
+            }
+        }
+
+        public void ApplyPendingCorridorResult()
+        {
+            cachedMainCamera = Camera.main;
+            ResetCursorForDefenseScene();
+            ApplyCorridorResult();
+
+            if (State != GameState.Defeat && State != GameState.Victory)
+            {
+                SetState(GameState.Playing);
             }
         }
 
@@ -123,6 +149,8 @@ namespace Jiangshi.Core
             }
 
             yield return null;
+            WaveManager.Instance?.StopWaveAudio();
+            PlaySerumVictoryMusic();
             Win();
         }
 
@@ -193,6 +221,12 @@ namespace Jiangshi.Core
             return EventSystem.current.IsPointerOverGameObject();
         }
 
+        private static void ResetCursorForDefenseScene()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
         public void SetState(GameState nextState)
         {
             if (State == nextState) return;
@@ -211,10 +245,76 @@ namespace Jiangshi.Core
 
         public void Lose()
         {
+            if (State == GameState.Defeat) return;
+
             Time.timeScale = 0f;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+            WaveManager.Instance?.StopWaveAudio();
+            PlayDefeatMusic();
             SetState(GameState.Defeat);
+        }
+
+        private void EnsureDefeatAudioSource()
+        {
+            if (defeatMusicClip == null)
+            {
+                defeatMusicClip = Resources.Load<AudioClip>(DefaultDefeatMusicResource);
+            }
+
+            if (defeatAudioSource == null)
+            {
+                defeatAudioSource = gameObject.AddComponent<AudioSource>();
+                defeatAudioSource.playOnAwake = false;
+                defeatAudioSource.loop = false;
+                defeatAudioSource.spatialBlend = 0f;
+            }
+
+            defeatAudioSource.volume = defeatMusicVolume;
+        }
+
+        private void PlayDefeatMusic()
+        {
+            EnsureDefeatAudioSource();
+            if (defeatMusicClip == null || defeatAudioSource == null)
+            {
+                return;
+            }
+
+            defeatAudioSource.clip = defeatMusicClip;
+            defeatAudioSource.volume = defeatMusicVolume;
+            defeatAudioSource.Play();
+        }
+
+        private void EnsureSerumVictoryAudioSource()
+        {
+            if (serumVictoryMusicClip == null)
+            {
+                serumVictoryMusicClip = Resources.Load<AudioClip>(DefaultSerumVictoryMusicResource);
+            }
+
+            if (serumVictoryAudioSource == null)
+            {
+                serumVictoryAudioSource = gameObject.AddComponent<AudioSource>();
+                serumVictoryAudioSource.playOnAwake = false;
+                serumVictoryAudioSource.loop = false;
+                serumVictoryAudioSource.spatialBlend = 0f;
+            }
+
+            serumVictoryAudioSource.volume = serumVictoryMusicVolume;
+        }
+
+        private void PlaySerumVictoryMusic()
+        {
+            EnsureSerumVictoryAudioSource();
+            if (serumVictoryMusicClip == null || serumVictoryAudioSource == null)
+            {
+                return;
+            }
+
+            serumVictoryAudioSource.clip = serumVictoryMusicClip;
+            serumVictoryAudioSource.volume = serumVictoryMusicVolume;
+            serumVictoryAudioSource.Play();
         }
 
         public void TogglePause()

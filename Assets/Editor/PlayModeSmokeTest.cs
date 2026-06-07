@@ -1,4 +1,8 @@
 using System.Diagnostics;
+using System.Reflection;
+using Jiangshi.Combat;
+using Jiangshi.UI;
+using Jiangshi.Units;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -84,8 +88,131 @@ namespace Jiangshi.Editor
                 return;
             }
 
+            CheckRuntimeObjectExists("Settings Volume Slider");
+            CheckRuntimeObjectExists("Settings Volume Value");
+            CheckRuntimeObjectExists("Settings Window Mode Button");
+            CheckRuntimeObjectExists("Game Guide Scroll View");
+            CheckRuntimeObjectExists("Guide Scrollbar");
+            CheckRtsCameraClamp();
+            CheckResourceAudioClip("Audio/Prototype/DefenseTheme");
+            CheckResourceAudioClip("Audio/Prototype/HordeTheme");
+            CheckResourceAudioClip("Audio/Prototype/DefeatTheme");
+            CheckResourceAudioClip("Audio/Prototype/SerumVictoryTheme");
+            CheckZombieAssignedTargetReach();
             UnityEngine.Debug.Log($"PlayModeSmokeTest completed. Failures: {failureCount}");
             Exit(failureCount == 0 ? 0 : 1);
+        }
+
+        private static void CheckRuntimeObjectExists(string objectName)
+        {
+            foreach (var candidate in Resources.FindObjectsOfTypeAll<GameObject>())
+            {
+                if (candidate.name == objectName)
+                {
+                    UnityEngine.Debug.Log($"{objectName} exists.");
+                    return;
+                }
+            }
+
+            UnityEngine.Debug.LogError($"{objectName} is missing.");
+        }
+
+        private static void CheckRtsCameraClamp()
+        {
+            var controller = Object.FindObjectOfType<RtsCameraController>();
+            if (controller == null)
+            {
+                UnityEngine.Debug.LogError("RtsCameraController is missing.");
+                return;
+            }
+
+            var clampMethod = typeof(RtsCameraController).GetMethod("ClampPosition", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (clampMethod == null)
+            {
+                UnityEngine.Debug.LogError("RtsCameraController clamp method is missing.");
+                return;
+            }
+
+            var originalPosition = controller.transform.position;
+            controller.transform.position = new Vector3(500f, originalPosition.y, 500f);
+            clampMethod.Invoke(controller, null);
+            var clampedPosition = controller.transform.position;
+            controller.transform.position = originalPosition;
+
+            if (clampedPosition.x > 160f || clampedPosition.z > 170f)
+            {
+                UnityEngine.Debug.LogError($"RtsCameraController did not clamp near the map: {clampedPosition}.");
+                return;
+            }
+
+            UnityEngine.Debug.Log($"RtsCameraController clamped camera near map: {clampedPosition}.");
+        }
+
+        private static void CheckResourceAudioClip(string resourcePath)
+        {
+            var clip = Resources.Load<AudioClip>(resourcePath);
+            if (clip == null)
+            {
+                UnityEngine.Debug.LogError($"AudioClip resource is missing: {resourcePath}");
+                return;
+            }
+
+            UnityEngine.Debug.Log($"AudioClip resource loaded: {resourcePath}");
+        }
+
+        private static void CheckZombieAssignedTargetReach()
+        {
+            var baseObject = new GameObject("Smoke Test Command Base");
+            var zombieObject = new GameObject("Smoke Test Zombie");
+
+            try
+            {
+                baseObject.transform.position = Vector3.zero;
+                var baseCollider = baseObject.AddComponent<BoxCollider>();
+                baseCollider.size = new Vector3(2f, 2f, 2f);
+                var baseFaction = baseObject.AddComponent<FactionMember>();
+                baseFaction.SetFaction(Faction.Player);
+                var baseDamageable = baseObject.AddComponent<Damageable>();
+
+                zombieObject.transform.position = new Vector3(2.2f, 0f, 1.2f);
+                var zombie = zombieObject.AddComponent<Zombie>();
+
+                SetPrivateField(zombie, "target", baseObject.transform);
+                SetPrivateField(zombie, "overlapHits", new Collider[8]);
+
+                var findAttackTarget = typeof(Zombie).GetMethod("FindAttackTarget", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (findAttackTarget == null)
+                {
+                    UnityEngine.Debug.LogError("Zombie FindAttackTarget method is missing.");
+                    return;
+                }
+
+                var result = findAttackTarget.Invoke(zombie, null) as Damageable;
+                if (result != baseDamageable)
+                {
+                    UnityEngine.Debug.LogError("Zombie did not use assigned target collider reach fallback.");
+                    return;
+                }
+
+                UnityEngine.Debug.Log("Zombie assigned target collider reach fallback works.");
+            }
+            finally
+            {
+                Object.Destroy(zombieObject);
+                Object.Destroy(baseObject);
+            }
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            if (field == null)
+            {
+                UnityEngine.Debug.LogError($"{target.GetType().Name} field is missing: {fieldName}");
+                return;
+            }
+
+            field.SetValue(target, value);
         }
 
         private static void OnLogMessageReceived(string condition, string stackTrace, LogType type)

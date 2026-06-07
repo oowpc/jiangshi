@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-
 /// <summary>
 /// 追逐者：激活后朝玩家移动，追上触发跳脸
 /// </summary>
@@ -143,6 +141,6 @@ public class Chaser : MonoBehaviour
 
     void ReturnToDefenseScene()
     {
-        SceneManager.LoadScene("Prototype");
+        CorridorSceneBridge.ReturnToDefenseScene(MissionResult.OperatorLost);
     }
 }

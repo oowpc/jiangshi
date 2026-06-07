@@ -24,6 +24,12 @@ namespace Jiangshi.Editor
         private const string BuildingDataRoot = "Assets/ScriptableObjects/Buildings";
         private const string UnitDataRoot = "Assets/ScriptableObjects/Units";
         private const string WaveDataRoot = "Assets/ScriptableObjects/Waves";
+        private const string PortalSpritePath = "Assets/Art/Sprites/PortalVortex.png";
+        private const string HordeIncomingAudioPath = "Assets/Resources/Audio/Prototype/ZombieHordeIncoming.wav";
+        private const string DefenseThemeAudioPath = "Assets/Resources/Audio/Prototype/DefenseTheme.mp3";
+        private const string HordeThemeAudioPath = "Assets/Resources/Audio/Prototype/HordeTheme.mp3";
+        private const string DefeatThemeAudioPath = "Assets/Resources/Audio/Prototype/DefeatTheme.mp3";
+        private const string SerumVictoryThemeAudioPath = "Assets/Resources/Audio/Prototype/SerumVictoryTheme.mp3";
 
         [MenuItem("Jiangshi/Setup/Create Prototype Assets")]
         public static void CreatePrototypeAssets()
@@ -236,6 +242,10 @@ namespace Jiangshi.Editor
                 new ResourceAmount { type = ResourceType.Food, amount = 10 },
                 new ResourceAmount { type = ResourceType.Power, amount = 30 }
             });
+            SetObjectReference(gameManager, "defeatMusicClip", AssetDatabase.LoadAssetAtPath<AudioClip>(DefeatThemeAudioPath));
+            SetFloat(gameManager, "defeatMusicVolume", 0.8f);
+            SetObjectReference(gameManager, "serumVictoryMusicClip", AssetDatabase.LoadAssetAtPath<AudioClip>(SerumVictoryThemeAudioPath));
+            SetFloat(gameManager, "serumVictoryMusicVolume", 0.85f);
             SetObjectReference(buildingManager, "gridManager", gridManager);
 
             SetObjectReference(waveManager, "unitManager", unitManager);
@@ -245,6 +255,11 @@ namespace Jiangshi.Editor
             SetObjectArray(waveManager, "waves", new Object[] { wave01, wave02, wave03, wave04 });
             SetBool(waveManager, "enableCorridorMission", true);
             SetInt(waveManager, "corridorTriggerAfterWave", 2);
+            SetObjectReference(waveManager, "waveStartClip", AssetDatabase.LoadAssetAtPath<AudioClip>(HordeIncomingAudioPath));
+            SetFloat(waveManager, "waveStartVolume", 0.9f);
+            SetObjectReference(waveManager, "baseMusicClip", AssetDatabase.LoadAssetAtPath<AudioClip>(DefenseThemeAudioPath));
+            SetObjectReference(waveManager, "hordeMusicClip", AssetDatabase.LoadAssetAtPath<AudioClip>(HordeThemeAudioPath));
+            SetFloat(waveManager, "musicVolume", 0.55f);
 
             var corridorPortalPrefab = CreateCorridorPortalPrefab();
             SetObjectReference(waveManager, "corridorPortalPrefab", corridorPortalPrefab);
@@ -429,7 +444,8 @@ namespace Jiangshi.Editor
             var instance = new GameObject("CorridorPortal");
             instance.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             var sr = instance.AddComponent<SpriteRenderer>();
-            sr.sprite = SpriteFactory.CreateColorSprite("Portal", new Color(0.3f, 0.9f, 1f, 0.7f), 64);
+            sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(PortalSpritePath)
+                ?? SpriteFactory.CreateColorSprite("Portal", new Color(0.3f, 0.9f, 1f, 0.7f), 64);
             sr.sortingOrder = 100;
             instance.transform.localScale = new Vector3(2f, 2f, 1f);
             var collider = instance.AddComponent<SphereCollider>();

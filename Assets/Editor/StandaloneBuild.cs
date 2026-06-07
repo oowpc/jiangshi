@@ -5,6 +5,7 @@ namespace Jiangshi.Editor
 {
     public static class StandaloneBuild
     {
+        private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
         private const string ScenePath = "Assets/Scenes/Prototype.unity";
         private const string SilentCorridorScenePath = "Assets/Scenes/SilentCorridor/SampleScene.unity";
         private const string OutputPath = "Builds/Windows/Jiangshi.exe";
@@ -17,9 +18,10 @@ namespace Jiangshi.Editor
             UpgradeToURP.Upgrade();
             TMPCharacterFixer.AddCharactersToAllFonts();
             PrototypeSetupMenu.CreatePrototypeScene();
+            MainMenuSetupMenu.CreateMainMenuSceneForBatch();
 
             var report = BuildPipeline.BuildPlayer(
-                new[] { ScenePath, SilentCorridorScenePath },
+                new[] { MainMenuScenePath, ScenePath, SilentCorridorScenePath },
                 OutputPath,
                 BuildTarget.StandaloneWindows64,
                 BuildOptions.None);

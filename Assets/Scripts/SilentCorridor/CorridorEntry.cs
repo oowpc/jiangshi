@@ -1,22 +1,15 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using Jiangshi.Core;
 
 public class CorridorEntry : MonoBehaviour
 {
     void Start()
     {
         Time.timeScale = 1f;
-
-        foreach (var cam in FindObjectsOfType<Camera>())
-        {
-            if (cam.gameObject.scene != gameObject.scene)
-                cam.enabled = false;
-        }
-
-        foreach (var es in FindObjectsOfType<EventSystem>())
-        {
-            if (es.gameObject.scene != gameObject.scene)
-                es.enabled = false;
-        }
+        GameAudioSettings.ApplySavedMasterVolume();
+        GameDisplaySettings.ApplySavedWindowMode();
+        SceneManager.SetActiveScene(gameObject.scene);
+        CorridorSceneBridge.SuspendDefenseScenes(gameObject.scene);
     }
 }

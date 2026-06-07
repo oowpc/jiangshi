@@ -8,6 +8,10 @@ namespace Jiangshi.Waves
 {
     public sealed class WaveManager : MonoBehaviour
     {
+        private const string DefaultWaveStartClipResource = "Audio/Prototype/ZombieHordeIncoming";
+        private const string DefaultBaseMusicResource = "Audio/Prototype/DefenseTheme";
+        private const string DefaultHordeMusicResource = "Audio/Prototype/HordeTheme";
+
         public static WaveManager Instance { get; private set; }
 
         [SerializeField] private WaveData[] waves;
@@ -19,6 +23,11 @@ namespace Jiangshi.Waves
         [SerializeField] private bool enableCorridorMission;
         [SerializeField] private int corridorTriggerAfterWave = 2;
         [SerializeField] private GameObject corridorPortalPrefab;
+        [SerializeField] private AudioClip waveStartClip;
+        [SerializeField, Range(0f, 1f)] private float waveStartVolume = 0.9f;
+        [SerializeField] private AudioClip baseMusicClip;
+        [SerializeField] private AudioClip hordeMusicClip;
+        [SerializeField, Range(0f, 1f)] private float musicVolume = 0.55f;
 
         private float scheduleStartTime;
         private int activeWaveCount;
@@ -29,16 +38,22 @@ namespace Jiangshi.Waves
         private bool portalSpawned;
         private GameObject portalInstance;
         private int waveSpawnedAlive;
+        private AudioSource waveStartAudioSource;
+        private AudioSource musicAudioSource;
 
         public string StatusText { get; private set; } = "无波次";
 
         private void Awake()
         {
             Instance = this;
+            EnsureWaveStartAudioSource();
+            EnsureMusicAudioSource();
         }
 
         private void Start()
         {
+            PlayBaseMusic();
+
             if (waves == null)
             {
                 return;
@@ -103,6 +118,8 @@ namespace Jiangshi.Waves
             activeWaveCount++;
             activeWaveText = string.IsNullOrWhiteSpace(wave.warningText) ? "波次进行中" : wave.warningText;
             RefreshStatusText();
+            PlayHordeMusic();
+            PlayWaveStartClip();
 
             if (wave.enemyGroups != null && wave.enemyGroups.Length > 0)
             {
@@ -143,6 +160,7 @@ namespace Jiangshi.Waves
             activeWaveCount = Mathf.Max(0, activeWaveCount - 1);
             completedWaveCount++;
             RefreshStatusText();
+            UpdateWaveMusicState();
 
             if (enableCorridorMission && completedWaveCount == corridorTriggerAfterWave)
             {
@@ -193,7 +211,125 @@ namespace Jiangshi.Waves
         {
             if (unit == null) return;
             waveSpawnedAlive++;
-            unit.Died += _ => waveSpawnedAlive = Mathf.Max(0, waveSpawnedAlive - 1);
+            unit.Died += OnTrackedWaveUnitDied;
+        }
+
+        private void OnTrackedWaveUnitDied(Unit unit)
+        {
+            if (unit != null)
+            {
+                unit.Died -= OnTrackedWaveUnitDied;
+            }
+
+            waveSpawnedAlive = Mathf.Max(0, waveSpawnedAlive - 1);
+            UpdateWaveMusicState();
+        }
+
+        private void EnsureWaveStartAudioSource()
+        {
+            if (waveStartClip == null)
+            {
+                waveStartClip = Resources.Load<AudioClip>(DefaultWaveStartClipResource);
+            }
+
+            if (waveStartAudioSource == null)
+            {
+                waveStartAudioSource = GetComponent<AudioSource>();
+                if (waveStartAudioSource == null)
+                {
+                    waveStartAudioSource = gameObject.AddComponent<AudioSource>();
+                }
+
+                waveStartAudioSource.playOnAwake = false;
+                waveStartAudioSource.loop = false;
+                waveStartAudioSource.spatialBlend = 0f;
+            }
+        }
+
+        private void PlayWaveStartClip()
+        {
+            EnsureWaveStartAudioSource();
+            if (waveStartClip == null || waveStartAudioSource == null) return;
+
+            waveStartAudioSource.PlayOneShot(waveStartClip, waveStartVolume);
+        }
+
+        public void StopWaveAudio()
+        {
+            if (musicAudioSource != null)
+            {
+                musicAudioSource.Stop();
+            }
+
+            if (waveStartAudioSource != null)
+            {
+                waveStartAudioSource.Stop();
+            }
+        }
+
+        private void EnsureMusicAudioSource()
+        {
+            if (baseMusicClip == null)
+            {
+                baseMusicClip = Resources.Load<AudioClip>(DefaultBaseMusicResource);
+            }
+
+            if (hordeMusicClip == null)
+            {
+                hordeMusicClip = Resources.Load<AudioClip>(DefaultHordeMusicResource);
+            }
+
+            if (musicAudioSource == null)
+            {
+                musicAudioSource = gameObject.AddComponent<AudioSource>();
+                musicAudioSource.playOnAwake = false;
+                musicAudioSource.loop = true;
+                musicAudioSource.spatialBlend = 0f;
+            }
+
+            musicAudioSource.volume = musicVolume;
+        }
+
+        private void PlayBaseMusic()
+        {
+            PlayMusic(baseMusicClip);
+        }
+
+        private void PlayHordeMusic()
+        {
+            PlayMusic(hordeMusicClip);
+        }
+
+        private void PlayMusic(AudioClip clip)
+        {
+            EnsureMusicAudioSource();
+            if (clip == null || musicAudioSource == null)
+            {
+                return;
+            }
+
+            if (musicAudioSource.clip == clip && musicAudioSource.isPlaying)
+            {
+                musicAudioSource.volume = musicVolume;
+                return;
+            }
+
+            musicAudioSource.clip = clip;
+            musicAudioSource.loop = true;
+            musicAudioSource.volume = musicVolume;
+            musicAudioSource.Play();
+        }
+
+        private void UpdateWaveMusicState()
+        {
+            if (activeWaveCount > 0 || waveSpawnedAlive > 0)
+            {
+                PlayHordeMusic();
+            }
+            else
+            {
+                PlayBaseMusic();
+            }
         }
 
         public void SpawnPopulationZombies(Vector3 center, int count)

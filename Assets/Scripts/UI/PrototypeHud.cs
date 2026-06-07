@@ -52,7 +52,11 @@ namespace Jiangshi.UI
         private Button settingsCloseButton;
         private Button settingsGuideButton;
         private Button settingsQuitButton;
+        private Button settingsWindowModeButton;
         private Button guideCloseButton;
+        private Slider settingsVolumeSlider;
+        private Text settingsVolumeValueText;
+        private Text settingsWindowModeButtonLabel;
         private GameObject settingsPanel;
         private GameObject guidePanel;
         private bool settingsPausedGame;
@@ -133,6 +137,8 @@ namespace Jiangshi.UI
             }
 
             EnsureSettingsUi();
+            RefreshMasterVolumeUi();
+            RefreshWindowModeUi();
             EnsureDemolitionUi();
             EnsureBuildTooltipUi();
             RegisterBuildButtons();
@@ -223,6 +229,16 @@ namespace Jiangshi.UI
                 settingsQuitButton.onClick.RemoveListener(QuitGame);
             }
 
+            if (settingsWindowModeButton != null)
+            {
+                settingsWindowModeButton.onClick.RemoveListener(ToggleWindowMode);
+            }
+
+            if (settingsVolumeSlider != null)
+            {
+                settingsVolumeSlider.onValueChanged.RemoveListener(OnMasterVolumeChanged);
+            }
+
             if (guideCloseButton != null)
             {
                 guideCloseButton.onClick.RemoveListener(CloseGuide);
@@ -275,6 +291,8 @@ namespace Jiangshi.UI
             }
 
             settingsPanel.SetActive(true);
+            RefreshMasterVolumeUi();
+            RefreshWindowModeUi();
         }
 
         private void CloseSettings()
@@ -318,6 +336,41 @@ namespace Jiangshi.UI
             {
                 guidePanel.SetActive(false);
             }
+        }
+
+        private void OnMasterVolumeChanged(float volume)
+        {
+            GameAudioSettings.SetMasterVolume(volume);
+            RefreshMasterVolumeText(volume);
+        }
+
+        private void RefreshMasterVolumeUi()
+        {
+            var volume = Mathf.Clamp01(GameAudioSettings.MasterVolume);
+            AudioListener.volume = volume;
+
+            if (settingsVolumeSlider != null)
+            {
+                settingsVolumeSlider.SetValueWithoutNotify(volume);
+            }
+
+            RefreshMasterVolumeText(volume);
+        }
+
+        private void RefreshMasterVolumeText(float volume)
+        {
+            SetText(settingsVolumeValueText, $"{Mathf.RoundToInt(Mathf.Clamp01(volume) * 100f)}%");
+        }
+
+        private void ToggleWindowMode()
+        {
+            GameDisplaySettings.SetWindowed(!GameDisplaySettings.IsWindowed);
+            RefreshWindowModeUi();
+        }
+
+        private void RefreshWindowModeUi()
+        {
+            SetText(settingsWindowModeButtonLabel, GameDisplaySettings.IsWindowed ? "全屏" : "窗口化");
         }
 
         private void HandleBuildingSelectionInput()
@@ -1111,14 +1164,23 @@ namespace Jiangshi.UI
             SetupRuntimeRect(settingsButton.gameObject, new Vector2(1f, 1f), new Vector2(-76f, -24f), new Vector2(116f, 38f));
             settingsButton.GetComponentInChildren<Text>().text = "菜单";
 
-            settingsPanel = CreateRuntimePanel(root, "Settings Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 260f), new Color(0.035f, 0.045f, 0.052f, 0.94f));
-            CreateRuntimeText(settingsPanel.transform, "Settings Title", "设置", 30, new Vector2(0f, 86f), new Vector2(340f, 44f), TextAnchor.MiddleCenter);
-            CreateRuntimeText(settingsPanel.transform, "Settings Message", "游戏已暂停", 20, new Vector2(0f, 48f), new Vector2(340f, 32f), TextAnchor.MiddleCenter);
+            settingsPanel = CreateRuntimePanel(root, "Settings Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(460f, 380f), new Color(0.035f, 0.045f, 0.052f, 0.94f));
+            CreateRuntimeText(settingsPanel.transform, "Settings Title", "设置", 30, new Vector2(0f, 144f), new Vector2(360f, 44f), TextAnchor.MiddleCenter);
+            CreateRuntimeText(settingsPanel.transform, "Settings Message", "游戏已暂停", 20, new Vector2(0f, 106f), new Vector2(360f, 32f), TextAnchor.MiddleCenter);
+            CreateRuntimeText(settingsPanel.transform, "Settings Volume Label", "主音量", 18, new Vector2(-138f, 64f), new Vector2(104f, 28f), TextAnchor.MiddleRight);
+            settingsVolumeSlider = CreateRuntimeSlider(settingsPanel.transform, "Settings Volume Slider", new Vector2(0.5f, 0.5f), new Vector2(22f, 64f), new Vector2(218f, 28f));
+            settingsVolumeValueText = CreateRuntimeText(settingsPanel.transform, "Settings Volume Value", "100%", 18, new Vector2(168f, 64f), new Vector2(64f, 28f), TextAnchor.MiddleLeft);
+            settingsVolumeSlider.SetValueWithoutNotify(Mathf.Clamp01(GameAudioSettings.MasterVolume));
+            settingsVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
+            RefreshMasterVolumeText(settingsVolumeSlider.value);
 
-            settingsGuideButton = CreateRuntimeButton(settingsPanel.transform, "Settings Guide Button", "游戏指南", new Vector2(0.5f, 0.5f), new Vector2(0f, 0f), new Vector2(180f, 42f));
-            settingsCloseButton = CreateRuntimeButton(settingsPanel.transform, "Settings Close Button", "继续游戏", new Vector2(0.5f, 0.5f), new Vector2(-96f, -70f), new Vector2(150f, 44f));
-            settingsQuitButton = CreateRuntimeButton(settingsPanel.transform, "Settings Quit Button", "退出游戏", new Vector2(0.5f, 0.5f), new Vector2(96f, -70f), new Vector2(150f, 44f));
+            settingsWindowModeButton = CreateRuntimeButton(settingsPanel.transform, "Settings Window Mode Button", "窗口化", new Vector2(0.5f, 0.5f), new Vector2(0f, 14f), new Vector2(180f, 42f));
+            settingsWindowModeButtonLabel = settingsWindowModeButton.GetComponentInChildren<Text>();
+            settingsGuideButton = CreateRuntimeButton(settingsPanel.transform, "Settings Guide Button", "游戏指南", new Vector2(0.5f, 0.5f), new Vector2(0f, -44f), new Vector2(180f, 42f));
+            settingsCloseButton = CreateRuntimeButton(settingsPanel.transform, "Settings Close Button", "继续游戏", new Vector2(0.5f, 0.5f), new Vector2(-96f, -132f), new Vector2(150f, 44f));
+            settingsQuitButton = CreateRuntimeButton(settingsPanel.transform, "Settings Quit Button", "退出游戏", new Vector2(0.5f, 0.5f), new Vector2(96f, -132f), new Vector2(150f, 44f));
             settingsCloseButton.onClick.AddListener(CloseSettings);
+            settingsWindowModeButton.onClick.AddListener(ToggleWindowMode);
             settingsGuideButton.onClick.AddListener(OpenGuide);
             settingsQuitButton.onClick.AddListener(QuitGame);
             var settingsTexts = settingsPanel.GetComponentsInChildren<Text>();
@@ -1133,20 +1195,21 @@ namespace Jiangshi.UI
             }
 
             settingsCloseButton.GetComponentInChildren<Text>().text = "继续";
+            RefreshWindowModeUi();
             settingsGuideButton.GetComponentInChildren<Text>().text = "游戏指南";
             settingsQuitButton.GetComponentInChildren<Text>().text = "退出";
             settingsPanel.SetActive(false);
 
             guidePanel = CreateRuntimePanel(root, "Game Guide Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 430f), new Color(0.032f, 0.042f, 0.048f, 0.97f));
             CreateRuntimeText(guidePanel.transform, "Guide Title", "游戏指南", 30, new Vector2(0f, 176f), new Vector2(540f, 42f), TextAnchor.MiddleCenter);
-            CreateRuntimeText(
+            CreateRuntimeScrollText(
                 guidePanel.transform,
+                "Game Guide Scroll View",
                 "Guide Body",
                 "目标\n守住指挥基地直到倒计时结束。第2波后会出现传送门，派人调查走廊可改变战局。\n\n视野\nWASD 或鼠标移到屏幕边缘移动视野，滚轮缩放。\n\n建造\n数字键 1-9/0 或右侧按钮选择建筑，左键放置，右键或 Esc 取消。城墙可按 Tab 旋转。鼠标悬停按钮可查看消耗和缺少的资源。\n\n资源\n木屋、伐木场、农场、电厂和矿场提供资源。电力不足建筑停摆，人口靠木屋提供，资源不够时按钮变暗。\n\n战斗\n兵工厂训练士兵和剑客。左键拖拽可框选多个单位，右键点敌人攻击、右键点地面移动。士兵远程开枪，剑客近战拦截，单位会自动绕过湖泊和树林。箭塔自动攻击范围内的敌人。\n\n操作\nP 暂停或继续；打开设置时自动暂停。点击建筑可查看拆除返还，核心建筑不能拆除。",
                 18,
-                new Vector2(0f, 4f),
-                new Vector2(540f, 300f),
-                TextAnchor.UpperLeft);
+                new Vector2(0f, 2f),
+                new Vector2(548f, 286f));
             guideCloseButton = CreateRuntimeButton(guidePanel.transform, "Guide Close Button", "关闭", new Vector2(0.5f, 0.5f), new Vector2(0f, -176f), new Vector2(150f, 42f));
             guideCloseButton.onClick.AddListener(CloseGuide);
             guideCloseButton.GetComponentInChildren<Text>().text = "关闭";
@@ -1195,6 +1258,137 @@ namespace Jiangshi.UI
             return button;
         }
 
+        private static Slider CreateRuntimeSlider(Transform parent, string name, Vector2 anchor, Vector2 anchoredPosition, Vector2 size)
+        {
+            var sliderObject = new GameObject(name);
+            sliderObject.transform.SetParent(parent, false);
+            SetupRuntimeRect(sliderObject, anchor, anchoredPosition, size);
+
+            var backgroundObject = new GameObject("Background");
+            backgroundObject.transform.SetParent(sliderObject.transform, false);
+            SetupRuntimeStretch(backgroundObject, Vector2.zero, Vector2.one, new Vector2(8f, 9f), new Vector2(-8f, -9f));
+            var background = backgroundObject.AddComponent<Image>();
+            background.color = new Color(0.08f, 0.105f, 0.12f, 0.96f);
+
+            var fillAreaObject = new GameObject("Fill Area");
+            fillAreaObject.transform.SetParent(sliderObject.transform, false);
+            SetupRuntimeStretch(fillAreaObject, Vector2.zero, Vector2.one, new Vector2(8f, 9f), new Vector2(-8f, -9f));
+
+            var fillObject = new GameObject("Fill");
+            fillObject.transform.SetParent(fillAreaObject.transform, false);
+            SetupRuntimeStretch(fillObject, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var fill = fillObject.AddComponent<Image>();
+            fill.color = new Color(0.1f, 0.72f, 0.7f, 1f);
+
+            var handleAreaObject = new GameObject("Handle Slide Area");
+            handleAreaObject.transform.SetParent(sliderObject.transform, false);
+            SetupRuntimeStretch(handleAreaObject, Vector2.zero, Vector2.one, new Vector2(8f, 0f), new Vector2(-8f, 0f));
+
+            var handleObject = new GameObject("Handle");
+            handleObject.transform.SetParent(handleAreaObject.transform, false);
+            SetupRuntimeRect(handleObject, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(22f, 28f));
+            var handle = handleObject.AddComponent<Image>();
+            handle.color = new Color(0.94f, 0.96f, 0.93f, 1f);
+
+            var slider = sliderObject.AddComponent<Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.wholeNumbers = false;
+            slider.direction = Slider.Direction.LeftToRight;
+            slider.fillRect = fillObject.GetComponent<RectTransform>();
+            slider.handleRect = handleObject.GetComponent<RectTransform>();
+            slider.targetGraphic = handle;
+
+            var colors = slider.colors;
+            colors.normalColor = handle.color;
+            colors.highlightedColor = new Color(0.95f, 0.86f, 0.66f, 1f);
+            colors.pressedColor = new Color(0.78f, 0.64f, 0.36f, 1f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = new Color(0.48f, 0.52f, 0.52f, 0.72f);
+            slider.colors = colors;
+
+            return slider;
+        }
+
+        private static void CreateRuntimeScrollText(Transform parent, string scrollName, string textName, string value, int fontSize, Vector2 anchoredPosition, Vector2 size)
+        {
+            const float contentHeight = 620f;
+
+            var scrollObject = new GameObject(scrollName);
+            scrollObject.transform.SetParent(parent, false);
+            SetupRuntimeRect(scrollObject, new Vector2(0.5f, 0.5f), anchoredPosition, size);
+
+            var viewportObject = new GameObject("Viewport");
+            viewportObject.transform.SetParent(scrollObject.transform, false);
+            SetupRuntimeStretch(viewportObject, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-24f, 0f));
+            var viewportImage = viewportObject.AddComponent<Image>();
+            viewportImage.color = new Color(1f, 1f, 1f, 0.001f);
+            var mask = viewportObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+
+            var contentObject = new GameObject("Content");
+            contentObject.transform.SetParent(viewportObject.transform, false);
+            var contentRect = contentObject.AddComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = new Vector2(0f, contentHeight);
+
+            var textObject = new GameObject(textName);
+            textObject.transform.SetParent(contentObject.transform, false);
+            SetupRuntimeStretch(textObject, Vector2.zero, Vector2.one, new Vector2(8f, 0f), new Vector2(-8f, -8f));
+            var text = textObject.AddComponent<Text>();
+            text.text = value;
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = fontSize;
+            text.alignment = TextAnchor.UpperLeft;
+            text.color = new Color(0.94f, 0.96f, 0.93f, 1f);
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+
+            var scrollbar = CreateRuntimeScrollbar(scrollObject.transform, "Guide Scrollbar", Mathf.Clamp01(size.y / contentHeight));
+            var scrollRect = scrollObject.AddComponent<ScrollRect>();
+            scrollRect.viewport = viewportObject.GetComponent<RectTransform>();
+            scrollRect.content = contentRect;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 28f;
+            scrollRect.verticalScrollbar = scrollbar;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            scrollRect.verticalNormalizedPosition = 1f;
+        }
+
+        private static Scrollbar CreateRuntimeScrollbar(Transform parent, string name, float size)
+        {
+            var scrollbarObject = new GameObject(name);
+            scrollbarObject.transform.SetParent(parent, false);
+            SetupRuntimeStretch(scrollbarObject, new Vector2(1f, 0f), Vector2.one, new Vector2(-16f, 0f), Vector2.zero);
+
+            var background = scrollbarObject.AddComponent<Image>();
+            background.color = new Color(0.08f, 0.105f, 0.12f, 0.96f);
+
+            var slidingAreaObject = new GameObject("Sliding Area");
+            slidingAreaObject.transform.SetParent(scrollbarObject.transform, false);
+            SetupRuntimeStretch(slidingAreaObject, Vector2.zero, Vector2.one, new Vector2(2f, 2f), new Vector2(-2f, -2f));
+
+            var handleObject = new GameObject("Handle");
+            handleObject.transform.SetParent(slidingAreaObject.transform, false);
+            SetupRuntimeStretch(handleObject, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var handle = handleObject.AddComponent<Image>();
+            handle.color = new Color(0.1f, 0.72f, 0.7f, 1f);
+
+            var scrollbar = scrollbarObject.AddComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.targetGraphic = handle;
+            scrollbar.handleRect = handleObject.GetComponent<RectTransform>();
+            scrollbar.value = 1f;
+            scrollbar.size = Mathf.Clamp(size, 0.1f, 1f);
+
+            return scrollbar;
+        }
+
         private static Text CreateRuntimeText(Transform parent, string name, string value, int fontSize, Vector2 anchoredPosition, Vector2 size, TextAnchor alignment)
         {
             var textObject = new GameObject(name);
@@ -1225,6 +1419,21 @@ namespace Jiangshi.UI
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = anchoredPosition;
             rect.sizeDelta = size;
+        }
+
+        private static void SetupRuntimeStretch(GameObject obj, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+        {
+            var rect = obj.GetComponent<RectTransform>();
+            if (rect == null)
+            {
+                rect = obj.AddComponent<RectTransform>();
+            }
+
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.offsetMin = offsetMin;
+            rect.offsetMax = offsetMax;
         }
     }
 }

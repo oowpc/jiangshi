@@ -96,6 +96,11 @@ namespace Jiangshi.Editor
             CheckSoldierProjectileBinding();
             CheckSoldierFiresProjectile();
             CheckRuntimeObjectExists("Settings Guide Button");
+            CheckRuntimeObjectExists("Settings Volume Slider");
+            CheckRuntimeObjectExists("Settings Volume Value");
+            CheckRuntimeObjectExists("Settings Window Mode Button");
+            CheckRuntimeObjectExists("Game Guide Scroll View");
+            CheckRuntimeObjectExists("Guide Scrollbar");
             CheckRuntimeObjectExists("Game Guide Panel");
 
             UnityEngine.Debug.Log($"VisualAssetPlayModeSmokeTest completed. Failures: {failureCount}");

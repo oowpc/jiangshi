@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-
 public class SerumPickup : MonoBehaviour, IInteractable
 {
     [Header("组件引用")]
@@ -45,7 +43,7 @@ public class SerumPickup : MonoBehaviour, IInteractable
 
     void ReturnToDefenseScene()
     {
-        Debug.Log("[SerumPickup] ReturnToDefenseScene 被调用，加载 Prototype");
-        SceneManager.LoadScene("Prototype");
+        Debug.Log("[SerumPickup] ReturnToDefenseScene 被调用，返回现有 Prototype");
+        CorridorSceneBridge.ReturnToDefenseScene(MissionResult.SerumAcquired);
     }
 }

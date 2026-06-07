@@ -33,9 +33,10 @@ SampleScene 加载后，挂在场景中任意空物体上的 `CorridorEntry` 立
 Time.timeScale = 1f;                        // 恢复时间流速（仅 3D 场景需要）
 禁用 Prototype 的 Camera 组件                // 避免两场景相机冲突
 禁用 Prototype 的 EventSystem 组件           // 避免两套 UI 输入冲突
+禁用 Prototype 的 Canvas / OnGUI UI 组件      // 避免 2D HUD 覆盖走廊 UI
 ```
 
-**关键**：只禁用组件（`enabled = false`），不禁用 GameObject。这样返回时 `FindObjectsOfType` 仍能找到它们恢复。
+**关键**：只禁用组件（`enabled = false`），不禁用 GameObject。这样走廊场景可以保持独立相机和 UI，Prototype 场景暂停在后台等待结算返回。
 
 ---
 
@@ -58,7 +59,7 @@ Time.timeScale = 1f;                        // 恢复时间流速（仅 3D 场�
 SceneManager.LoadScene("Prototype")  ← 单模式加载，自动卸载 SampleScene
     │
     ▼
-GameManager.Start() 读取 MissionResultState.Result
+GameManager.Start() 解锁并显示鼠标，然后读取 MissionResultState.Result
     │
     ├── SerumAcquired  →  血清投放模式（点击地图 → 全灭僵尸 → 胜利）
     └── OperatorLost   →  200只僵尸从四面包围（必败）
@@ -131,6 +132,8 @@ case MissionResult.SecretEnding:
 | 症状 | 原因 | 解决 |
 |------|------|------|
 | 进走廊后 2D 游戏在跑 | `CorridorEntry` 未挂载或未设置 timeScale=1 | 检查 SampleScene 有无 CorridorEntry 脚本 |
+| 进走廊后 Prototype HUD 还在 | `CorridorEntry` 未禁用 Prototype 的 Canvas / OnGUI UI | 已在 CorridorEntry 中禁用外部场景 UI 组件 |
+| 返回 Prototype 后鼠标不能动 | 走廊第一人称控制器把 Cursor 锁定且隐藏 | 已在 GameManager.Start 中重置为 `CursorLockMode.None` + visible |
 | 捡起药剂无反应 | `gameObject.SetActive(false)` 会导致 Invoke 失效 | 已修复为禁用 Renderer/Collider |
 | 返回后黑屏 | Prototype 相机被禁用后无法恢复 | 已修复为禁用组件而非 GameObject |
 | `Unloading last loaded scene` 报错 | 叠加场景不能直接 UnloadAsync | 已改用 `LoadScene("Prototype")` 单模式 |
