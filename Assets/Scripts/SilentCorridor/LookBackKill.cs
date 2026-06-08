@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 /// <summary>
 /// 回头杀：特定Loop中如果玩家回头看到身后的鬼，游戏直接结束
 /// 挂在身后的鬼物体上，由LoopManager事件激活
@@ -83,6 +84,6 @@ public class LookBackKill : MonoBehaviour
 
     void ReturnToDefenseScene()
     {
-        CorridorSceneBridge.ReturnToDefenseScene(MissionResult.OperatorLost);
+        SceneManager.LoadScene("Prototype");
     }
 }
